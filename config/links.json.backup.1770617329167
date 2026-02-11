@@ -1,0 +1,121 @@
+{
+  "recommended": [
+    {
+      "name": "CSS-Tricks",
+      "url": "https://css-tricks.com/",
+      "avatar": "https://picsum.photos/seed/csstricks/100/100",
+      "description": "探索 CSS 的无限可能"
+    },
+    {
+      "name": "Smashing Magazine",
+      "url": "https://www.smashingmagazine.com/",
+      "avatar": "https://picsum.photos/seed/smashing/100/100",
+      "description": "专业的网页设计与开发杂志"
+    },
+    {
+      "name": "廖雪峰的官方网站",
+      "url": "https://www.liaoxuefeng.com/",
+      "avatar": "https://picsum.photos/seed/liaoxuefeng/100/100",
+      "description": "Python、Git、JavaScript 教程"
+    },
+    {
+      "name": "酷壳 - CoolShell",
+      "url": "https://coolshell.cn/",
+      "avatar": "https://picsum.photos/seed/coolshell/100/100",
+      "description": "享受编程和技术所带来的快乐"
+    },
+    {
+      "name": "少数派",
+      "url": "https://sspai.com/",
+      "avatar": "https://picsum.photos/seed/sspai/100/100",
+      "description": "高效工作，品质生活"
+    },
+    {
+      "name": "V2EX",
+      "url": "https://www.v2ex.com/",
+      "avatar": "https://picsum.photos/seed/v2ex/100/100",
+      "description": "创意工作者的社区"
+    },
+    {
+      "name": "掘金",
+      "url": "https://juejin.cn/",
+      "avatar": "https://picsum.photos/seed/juejin/100/100",
+      "description": "开发者成长社区"
+    },
+    {
+      "name": "思否",
+      "url": "https://segmentfault.com/",
+      "avatar": "https://picsum.photos/seed/segmentfault/100/100",
+      "description": "技术问答开发者社区"
+    },
+    {
+      "name": "Dev.to",
+      "url": "https://dev.to/",
+      "avatar": "https://picsum.photos/seed/devto/100/100",
+      "description": "程序员的创作者平台"
+    },
+    {
+      "name": "Hacker News",
+      "url": "https://news.ycombinator.com/",
+      "avatar": "https://picsum.photos/seed/hackernews/100/100",
+      "description": "科技新闻与讨论"
+    },
+    {
+      "name": "GitHub Blog",
+      "url": "https://github.blog/",
+      "avatar": "https://picsum.photos/seed/githubblog/100/100",
+      "description": "GitHub 官方博客"
+    },
+    {
+      "name": "Medium",
+      "url": "https://medium.com/",
+      "avatar": "https://picsum.photos/seed/medium/100/100",
+      "description": "人人都可以写作的平台"
+    },
+    {
+      "name": "InfoQ",
+      "url": "https://www.infoq.cn/",
+      "avatar": "https://picsum.photos/seed/infoq/100/100",
+      "description": "专业的软件开发资讯站"
+    },
+    {
+      "name": "TypeScript 中文网",
+      "url": "https://www.typescriptlang.org/zh/",
+      "avatar": "https://picsum.photos/seed/typescript/100/100",
+      "description": "TypeScript 官方中文文档"
+    },
+    {
+      "name": "MDN Web Docs",
+      "url": "https://developer.mozilla.org/zh-CN/",
+      "avatar": "https://picsum.photos/seed/mdn/100/100",
+      "description": "Web 技术权威文档"
+    },
+    {
+      "name": "StackOverflow",
+      "url": "https://stackoverflow.com/",
+      "avatar": "https://picsum.photos/seed/stackoverflow/100/100",
+      "description": "程序员问答社区"
+    },
+    {
+      "name": "Node.js 中文网",
+      "url": "https://nodejs.cn/",
+      "avatar": "https://picsum.photos/seed/nodejs/100/100",
+      "description": "Node.js 中文文档与教程"
+    },
+    {
+      "name": "React 官方文档",
+      "url": "https://zh-hans.react.dev/",
+      "avatar": "https://picsum.photos/seed/reactdev/100/100",
+      "description": "用于构建用户界面的 JavaScript 库"
+    }
+  ],
+  "applicationTitle": "友链申请",
+  "applicationInfo": "## 申请方式\n\n请通过以下格式在评论区留言或发送邮件至 `Perimsx@qq.com`：\n\n```yaml\n名称: 你的博客名称\n链接: https://your-blog.com\n头像: https://your-avatar-url.jpg\n描述: 一句话介绍你的博客\n```\n\n## 本站信息\n\n```yaml\n名称: Dawnlight\n链接: https://chenguitao.com\n头像: https://img1.tucang.cc/api/image/show/6e1261b268c996447a484e5dbd49f682\n描述: 记录技术与生活的点滴\n```",
+  "requirements": [
+    "博客已稳定运营 3 个月以上",
+    "原创内容为主，定期更新",
+    "网站可正常访问，无违规内容",
+    "已添加本站友链"
+  ],
+  "note": "友链审核通常在 3 个工作日内完成，通过后会第一时间上线。如长时间未通过，可能是不符合要求，欢迎改进后重新申请。"
+}

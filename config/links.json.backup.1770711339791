@@ -1,0 +1,67 @@
+{
+  "recommended": [
+    {
+      "name": "GitHub Blog",
+      "url": "https://github.blog/",
+      "avatar": "https://picsum.photos/seed/githubblog/100/100",
+      "description": "GitHub 官方博客"
+    },
+    {
+      "name": "Medium",
+      "url": "https://medium.com/",
+      "avatar": "https://picsum.photos/seed/medium/100/100",
+      "description": "人人都可以写作的平台"
+    },
+    {
+      "name": "InfoQ",
+      "url": "https://www.infoq.cn/",
+      "avatar": "https://picsum.photos/seed/infoq/100/100",
+      "description": "专业的软件开发资讯站"
+    },
+    {
+      "name": "TypeScript 中文网",
+      "url": "https://www.typescriptlang.org/zh/",
+      "avatar": "https://picsum.photos/seed/typescript/100/100",
+      "description": "TypeScript 官方中文文档"
+    },
+    {
+      "name": "MDN Web Docs",
+      "url": "https://developer.mozilla.org/zh-CN/",
+      "avatar": "https://picsum.photos/seed/mdn/100/100",
+      "description": "Web 技术权威文档"
+    },
+    {
+      "name": "StackOverflow",
+      "url": "https://stackoverflow.com/",
+      "avatar": "https://picsum.photos/seed/stackoverflow/100/100",
+      "description": "程序员问答社区"
+    },
+    {
+      "name": "Node.js 中文网",
+      "url": "https://nodejs.cn/",
+      "avatar": "https://picsum.photos/seed/nodejs/100/100",
+      "description": "Node.js 中文文档与教程"
+    },
+    {
+      "name": "React 官方文档",
+      "url": "https://zh-hans.react.dev/",
+      "avatar": "https://picsum.photos/seed/reactdev/100/100",
+      "description": "用于构建用户界面的 JavaScript 库"
+    },
+    {
+      "name": "星苒鸭 · 博客",
+      "url": "https://xingranya.cn/",
+      "avatar": "https://img1.tucang.cc/api/image/show/51ea2e89cb3376c0fc1ce4583e27c33c",
+      "description": "Hi there 👋, I'm xingranya"
+    }
+  ],
+  "applicationTitle": "友链申请",
+  "applicationInfo": "## 申请方式\n\n请通过以下格式在评论区留言或发送邮件至 `Perimsx@qq.com`：\n\n```yaml\n名称: 你的博客名称\n链接: https://your-blog.com\n头像: https://your-avatar-url.jpg\n描述: 一句话介绍你的博客\n```\n\n",
+  "requirements": [
+    "博客已稳定运营 3 个月以上",
+    "原创内容为主，定期更新",
+    "网站可正常访问，无违规内容",
+    "已添加本站友链"
+  ],
+  "note": "友链审核通常在 3 个工作日内完成，通过后会第一时间上线。如长时间未通过，可能是不符合要求，欢迎改进后重新申请。"
+}

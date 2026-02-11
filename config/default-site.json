@@ -1,0 +1,28 @@
+{
+    "site": {
+        "title": "Dawnlight Blog",
+        "description": "A minimal and elegant blog system",
+        "url": "http://localhost:3000",
+        "keywords": [
+            "blog",
+            "dawnlight",
+            "minimal"
+        ],
+        "language": "zh-CN",
+        "footer": "© 2024 Dawnlight. All rights reserved."
+    },
+    "author": {
+        "name": "Admin",
+        "bio": "Administrator of this blog",
+        "avatar": "/images/avatar.png",
+        "email": "admin@example.com",
+        "socials": []
+    },
+    "comments": {
+        "enabled": false
+    },
+    "analytics": {
+        "google": "",
+        "baidu": ""
+    }
+}

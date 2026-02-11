@@ -1,0 +1,363 @@
+/* 文章页面样式 - 目录 */
+
+/* 移动端隐藏目录卡片 */
+@media (max-width: 1024px) {
+    #toc-card {
+        display: none !important;
+    }
+}
+
+/* 确保锚点定位准确，不被顶部遮挡 */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+    scroll-margin-top: 80px;
+}
+
+/* 目录卡片容器 */
+#toc-card.glass-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible;
+}
+
+.toc-card {
+    position: sticky;
+    top: 20px;
+    z-index: 10;
+}
+
+/* 目录头部 */
+#toc-card .widget-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: transparent;
+}
+
+.toc-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.toc-action-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    transition: all 0.15s ease;
+}
+
+.toc-action-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* 目录内容区 — 极淡底色 + 左侧细线 */
+.toc-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0;
+    margin-left: 1px;
+    border-left: 1px solid var(--card-border);
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 32px), transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 32px), transparent 100%);
+}
+
+.toc-content::-webkit-scrollbar {
+    display: none;
+}
+
+/* 目录列表 */
+.toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.toc-item {
+    margin: 0;
+    position: relative;
+}
+
+/* 目录链接基础样式 */
+.toc-link {
+    display: block;
+    padding: 5px 14px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    transition: all 0.15s ease;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.toc-link:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+/* 激活状态 */
+.toc-link.active {
+    color: var(--accent-color);
+    background: var(--accent-light);
+    border-left-color: var(--accent-color);
+    font-weight: 500;
+}
+
+/* 层级样式 - h2 */
+.toc-item.level-2 .toc-link {
+    font-weight: 600;
+    color: var(--text-primary);
+    padding-left: 14px;
+}
+
+.toc-item.level-2 .toc-link.active {
+    font-weight: 600;
+}
+
+/* 层级样式 - h3 */
+.toc-item.level-3 .toc-link {
+    padding-left: 26px;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+/* 层级样式 - h4 */
+.toc-item.level-4 .toc-link {
+    padding-left: 38px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-tertiary);
+}
+
+/* 层级样式 - h5/h6 */
+.toc-item.level-5 .toc-link,
+.toc-item.level-6 .toc-link {
+    padding-left: 46px;
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+}
+
+/* 空目录提示 */
+.toc-empty {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 0.85rem;
+}
+
+/* ========================================
+   表格样式优化
+   ======================================== */
+.markdown-body table {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 1.5rem;
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+    padding: 10px 14px;
+    border: 1px solid var(--card-border);
+    vertical-align: top;
+}
+
+.markdown-body table th {
+    background-color: var(--bg-secondary);
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.markdown-body table tr:nth-child(2n) {
+    background-color: rgba(127, 127, 127, 0.03);
+}
+
+/* 表格容器 - 支持横向滚动 */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+}
+
+.table-wrapper table {
+    margin-bottom: 0;
+    border: none;
+}
+
+/* 移除表格外围边框，避免与容器边框重叠 */
+.table-wrapper table th:first-child,
+.table-wrapper table td:first-child {
+    border-left: none;
+}
+
+.table-wrapper table th:last-child,
+.table-wrapper table td:last-child {
+    border-right: none;
+}
+
+.table-wrapper table tr:first-child th,
+.table-wrapper table tr:first-child td {
+    border-top: none;
+}
+
+.table-wrapper table tr:last-child td {
+    border-bottom: none;
+}
+
+/* ========================================
+   移动端适配优化
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* TOC 按钮尺寸优化 */
+    .toc-action-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    /* TOC 链接可点击区域 */
+    .toc-link {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* 文章内容间距 */
+    .markdown-body {
+        padding: 0;
+    }
+
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3 {
+        scroll-margin-top: 80px;
+    }
+
+    /* 代码块 */
+    .markdown-body pre {
+        margin-left: -16px;
+        margin-right: -16px;
+        border-radius: 0;
+        padding: 16px;
+    }
+
+    /* 图片适配 - 保持比例，不强制拉伸 */
+    .markdown-body img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 6px;
+        margin: 0.5em 0;
+    }
+
+    /* 内联代码适配 - 防止溢出 */
+    .markdown-body code {
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+    }
+
+    /* 引用块 */
+    .markdown-body blockquote {
+        margin-left: 0;
+        margin-right: 0;
+        padding: 12px 16px;
+    }
+
+    /* 表格适配 */
+    .table-wrapper {
+        margin-left: -16px;
+        margin-right: -16px;
+        width: calc(100% + 32px);
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        background: transparent;
+    }
+
+    .table-wrapper table {
+        font-size: 0.85rem;
+    }
+
+    .table-wrapper table th,
+    .table-wrapper table td {
+        padding: 8px 10px;
+        white-space: nowrap;
+    }
+
+    /* 列表适配 - 减少缩进 */
+    .markdown-body ul,
+    .markdown-body ol {
+        padding-left: 1.2rem;
+    }
+
+    /* 标题适配 - 减小字号 */
+    .markdown-body h1 {
+        font-size: 1.5rem;
+    }
+
+    .markdown-body h2 {
+        font-size: 1.35rem;
+    }
+
+    .markdown-body h3 {
+        font-size: 1.2rem;
+    }
+
+    .markdown-body h4 {
+        font-size: 1.1rem;
+    }
+
+    /* 公式适配 */
+    .katex-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        margin: 1em -16px;
+        padding: 0 16px;
+    }
+
+    /* 视频/Embed适配 */
+    .markdown-body iframe,
+    .markdown-body video {
+        max-width: 100%;
+        border-radius: 6px;
+    }
+}
