@@ -40,7 +40,7 @@
 - 🟢 **后端** — Nuxt 4 + Nitro Server
 - 🟡 **前端** — Vue 3 + TypeScript
 - 🔵 **存储** — JSON + Markdown 文件系统
-- 🟣 **部署** — Vercel / Netlify / Docker
+- 🟣 **部署** — Vercel/Netlify/Docker
 
 </td>
 <td width="50%">
