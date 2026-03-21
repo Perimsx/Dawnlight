@@ -108,7 +108,7 @@ export const usePosts = () => {
     const getPostsByYear = () => {
         const grouped: Record<string, Post[]> = {}
         posts.value.forEach(post => {
-            const year = post.date.split('-')[0]
+            const year = post.date.split('-')[0] ?? 'unknown'
             if (!grouped[year]) grouped[year] = []
             grouped[year].push(post)
         })

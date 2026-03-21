@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <div class="a-topbar">
       <div>
@@ -105,7 +105,7 @@
                 <td style="color:var(--a-text-3);font-size:12px;white-space:nowrap;font-family:'SF Mono','Consolas',monospace;">{{ post.date?.split(' ')[0] || '-' }}</td>
                 <td style="color:var(--a-text-3);font-size:13px;white-space:nowrap;">{{ (post.wordCount || 0).toLocaleString('zh-CN') }}</td>
                 <td style="color:var(--a-text-3);font-size:13px;white-space:nowrap;">{{ post.views || 0 }}</td>
-                <td><span v-if="post.featured" class="featured-badge">精选</span><span v-else style="color:var(--a-text-3);font-size:12px;">普通</span></td>
+                <td><span v-if="post.featured" class="featured-badge">精选</span><span v-else class="normal-badge">普通</span></td>
                 <td style="text-align:right;padding-right:16px;">
                   <div class="ps-actions">
                     <NuxtLink :to="`/admin/posts/edit?id=${post.id}`" class="ps-act-btn" title="编辑">
@@ -135,7 +135,7 @@
             <div class="ps-mobile-meta">
               <span v-if="post.category">{{ post.category }}</span>
               <span>{{ post.date?.split(' ')[0] || '-' }}</span>
-              <span>{{ (post.wordCount || 0).toLocaleString('zh-CN') }}字</span>
+              <span>{{ (post.wordCount || 0).toLocaleString('zh-CN') }} 字</span>
             </div>
             <div v-if="post.tags && post.tags.length" class="ps-tags" style="margin-top:4px;">
               <span v-for="tag in post.tags.slice(0, 3)" :key="tag" class="ps-tag">{{ tag }}</span>
@@ -261,6 +261,7 @@ onMounted(loadPosts)
 .ps-tag { font-size:11px; background:rgba(var(--a-primary-rgb),.06); padding:1px 6px; border-radius:4px; color:var(--a-text-3); }
 .ps-category { font-size:12px; color:var(--a-primary); background:rgba(var(--a-primary-rgb),.08); padding:2px 8px; border-radius:4px; }
 .featured-badge { font-size:11px; background:rgba(255,149,0,.12); color:#ff9500; padding:2px 8px; border-radius:4px; font-weight:500; }
+.normal-badge { font-size:11px; color:var(--a-text-3); padding:2px 8px; border-radius:4px; background:rgba(125,125,125,0.08); }
 
 /* 操作按钮 */
 .ps-actions { display:flex; gap:4px; justify-content:flex-end; }
@@ -281,7 +282,9 @@ onMounted(loadPosts)
   .ps-desktop { display:none !important; }
   .ps-mobile { display:flex !important; }
   .ps-filter-bar { flex-direction:column; }
-  .ps-search { min-width:0; }
+  .ps-search { min-width:0; width:100%; }
+  .ps-select { width:100%; }
+  .ps-mobile-meta { flex-wrap:wrap; gap:8px; }
 }
 @media (max-width:480px) {
   .ps-stats-row { gap:8px; }

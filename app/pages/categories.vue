@@ -30,19 +30,41 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { config } = useSiteConfig()
 const { posts, getAllTags } = usePosts()
+const { siteTitle, siteName, siteDescription, canonicalUrl } = usePageSeo()
 
-const setSidebarConfig = inject('setSidebarConfig', () => {})
+const setSidebarConfig = inject<(config: Record<string, boolean>) => void>('setSidebarConfig', () => {})
 setSidebarConfig({
-  stats: true, siteInfo: false, social: false,
-  announcement: false, log: false, toc: false
+  stats: false,
+  siteInfo: false,
+  social: false,
+  announcement: false,
+  log: true,
+  toc: false
 })
 
-useHead({
-  title: computed(() => `${config.value.site?.title || 'Dawnlight'} | 文章分类`)
+const pageTitle = computed(() => `${String(config.value.site?.title || '').trim() || siteTitle.value} | 文章分类`)
+const pageDescription = computed(() => `${siteDescription.value} 浏览全部文章分类与标签。`)
+
+useSeoMeta({
+  title: () => pageTitle.value,
+  ogTitle: () => pageTitle.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
+  ogType: 'website',
+  ogSiteName: () => siteName.value,
+  ogUrl: () => canonicalUrl.value,
+  twitterTitle: () => pageTitle.value,
+  twitterDescription: () => pageDescription.value
 })
+
+useHead(() => ({
+  link: [
+    { rel: 'canonical', href: canonicalUrl.value }
+  ]
+}))
 
 const tagMap = computed(() => getAllTags())
 
@@ -54,3 +76,47 @@ const sortedTags = computed(() => {
 
 const totalTags = computed(() => sortedTags.value.length)
 </script>
+
+<style scoped>
+@media (max-width: 768px) {
+  .categories-cloud {
+    gap: 10px;
+  }
+
+  .category-tag {
+    min-height: 38px;
+    padding: 7px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .categories-stats {
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 0.75rem;
+  }
+
+  .categories-cloud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .category-tag {
+    justify-content: space-between;
+    min-width: 0;
+  }
+
+  .tag-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 390px) {
+  .categories-cloud {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

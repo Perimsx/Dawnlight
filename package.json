@@ -2,10 +2,12 @@
   "name": "dawnlight",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
-    "build": "nuxt build",
+    "check:no-server-action-id": "node scripts/check-no-server-actions.mjs",
+    "build": "pnpm run check:no-server-action-id && nuxt build",
     "dev": "nuxt dev",
-    "generate": "nuxt generate",
+    "generate": "pnpm run check:no-server-action-id && nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
@@ -14,15 +16,26 @@
     "@types/marked": "^5.0.2",
     "better-sqlite3": "^12.6.2",
     "chart.js": "^4.5.1",
+    "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^3.0.0-rc.2",
+    "katex": "^0.16.32",
     "marked": "^17.0.1",
+    "nodemailer": "^8.0.1",
     "nuxt": "^4.3.1",
     "vue": "^3.5.27",
     "vue-chartjs": "^5.3.3",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^25.2.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "better-sqlite3",
+      "esbuild"
+    ]
   }
 }

@@ -1,35 +1,8 @@
 type MaybeEl = HTMLElement | null | undefined
 
-// Toast 图标
-const toastIcons = {
-  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-  error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-  warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
-}
 
-let toastTimer: any = null
+const { toast } = useToast()
 
-// Toast 提示函数（与前台评论Toast保持一致）
-const showCommentToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
-  if (typeof document === 'undefined') return
-  let toast = document.getElementById('comment-toast')
-  if (!toast) {
-    toast = document.createElement('div')
-    toast.id = 'comment-toast'
-    toast.className = 'comment-toast'
-    document.body.appendChild(toast)
-  }
-
-  toast.classList.remove('show')
-  toast.className = `comment-toast comment-toast-${type}`
-  const icon = toastIcons[type] || toastIcons.info
-  toast.innerHTML = `<div class="comment-toast-icon">${icon}</div><div class="comment-toast-content">${message}</div>`
-  requestAnimationFrame(() => toast.classList.add('show'))
-
-  if (toastTimer) clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000)
-}
 
 // 与旧版保持一致的防盗链白名单
 const HOTLINK_DOMAINS = [
@@ -100,7 +73,7 @@ function enhanceCodeBlocks(markdownBody: HTMLElement) {
 
     // --- 行号 ---
     const lines = code.innerHTML.split('\n')
-    if (lines.length > 1 && lines[lines.length - 1].trim() === '') lines.pop()
+    if (lines.length > 1 && lines[lines.length - 1]!.trim() === '') lines.pop()
     if (lines.length > 1) {
       code.innerHTML = lines.map((line, i) => `<span class="line" data-ln="${i + 1}">${line}</span>`).join('')
     }
@@ -120,12 +93,25 @@ function enhanceCodeBlocks(markdownBody: HTMLElement) {
       copyBtn.type = 'button'
       copyBtn.className = 'copy-code-btn'
       copyBtn.innerHTML = `${COPY_SVG}<span>复制</span>`
+      let copiedTimer: ReturnType<typeof setTimeout> | null = null
+
+      const setCopiedState = () => {
+        if (copiedTimer) clearTimeout(copiedTimer)
+        copyBtn.classList.add('copied')
+        copyBtn.innerHTML = `${CHECK_SVG}<span>已复制</span>`
+        copiedTimer = setTimeout(() => {
+          copyBtn.classList.remove('copied')
+          copyBtn.innerHTML = `${COPY_SVG}<span>复制</span>`
+        }, 1500)
+      }
+
       copyBtn.onclick = async function (e) {
         e.preventDefault()
         e.stopPropagation()
         try {
           await navigator.clipboard.writeText(codeText)
-          showCommentToast('复制成功', 'success')
+          toast('复制成功', 'success')
+          setCopiedState()
         } catch (_) {
           const ta = document.createElement('textarea')
           ta.value = codeText
@@ -134,7 +120,8 @@ function enhanceCodeBlocks(markdownBody: HTMLElement) {
           ta.select()
           document.execCommand('copy')
           document.body.removeChild(ta)
-          showCommentToast('复制成功', 'success')
+          toast('复制成功', 'success')
+          setCopiedState()
         }
       }
       wrapper.appendChild(copyBtn)
@@ -147,10 +134,13 @@ function enhanceCodeBlocks(markdownBody: HTMLElement) {
         const toggleBtn = document.createElement('button')
         toggleBtn.type = 'button'
         toggleBtn.className = 'code-toggle-btn'
-        toggleBtn.textContent = `展开全部 (${lines.length} 行)`
+        const EXPAND_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>'
+        const COLLAPSE_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>'
+
+        toggleBtn.innerHTML = `${EXPAND_ICON} 展开全部 (${lines.length} 行)`
         toggleBtn.onclick = function () {
           const collapsed = wrapper!.classList.toggle('code-collapsed')
-          toggleBtn.textContent = collapsed ? `展开全部 (${lines.length} 行)` : '收起代码'
+          toggleBtn.innerHTML = collapsed ? `${EXPAND_ICON} 展开全部 (${lines.length} 行)` : `${COLLAPSE_ICON} 收起代码`
         }
         wrapper.appendChild(toggleBtn)
       }
@@ -180,13 +170,13 @@ function enhanceCallouts(markdownBody: HTMLElement) {
     const match = text.match(/^\[!(NOTE|TIP|WARNING|CAUTION|IMPORTANT|INFO|DANGER|SUCCESS)\]\s*(.*)?$/i)
     if (!match) return
 
-    const key = match[1].toUpperCase()
+    const key = match[1]!.toUpperCase()
     const customTitle = match[2] || ''
     const callout = CALLOUT_MAP[key]
     if (!callout) return
 
     bqEl.setAttribute('data-callout', callout.type)
-    ;(bqEl as any).style.borderLeftColor = ''
+      ; (bqEl as any).style.borderLeftColor = ''
 
     const titleEl = document.createElement('div')
     titleEl.className = 'callout-title'
@@ -197,7 +187,7 @@ function enhanceCallouts(markdownBody: HTMLElement) {
       .trim()
 
     if (remaining) {
-      ;(firstP as HTMLElement).innerHTML = remaining
+      ; (firstP as HTMLElement).innerHTML = remaining
       bqEl.insertBefore(titleEl, firstP)
     } else {
       firstP.replaceWith(titleEl)
@@ -206,27 +196,86 @@ function enhanceCallouts(markdownBody: HTMLElement) {
 }
 
 function enhanceTables(markdownBody: HTMLElement) {
+  const isTouchOnlyDevice = () => window.matchMedia('(hover: none) and (pointer: coarse)').matches
+
+  const bindDesktopWheelHorizontal = (scrollEl: HTMLElement) => {
+    if (scrollEl.dataset.tableWheelBound === '1') return
+    scrollEl.dataset.tableWheelBound = '1'
+
+    scrollEl.addEventListener('wheel', (event) => {
+      // 纯触屏设备保持原生行为；桌面与触屏笔记本都启用滚轮横移
+      if (isTouchOnlyDevice()) return
+
+      const maxScrollX = scrollEl.scrollWidth - scrollEl.clientWidth
+      if (maxScrollX <= 0) return
+
+      const modeRatio = event.deltaMode === 1 ? 16 : (event.deltaMode === 2 ? scrollEl.clientWidth : 1)
+      const deltaX = event.deltaX * modeRatio
+      const deltaY = event.deltaY * modeRatio
+      const absX = Math.abs(deltaX)
+      const absY = Math.abs(deltaY)
+      let delta = 0
+
+      // 触控板横向滚动
+      if (absX > 0) delta += deltaX
+      // 鼠标滚轮纵向 -> 横向（桌面端查看超宽表格）
+      if (event.shiftKey || absY >= absX) delta += deltaY
+      if (!delta) return
+
+      const prev = scrollEl.scrollLeft
+      const next = Math.max(0, Math.min(maxScrollX, prev + delta))
+
+      if (next !== prev) {
+        scrollEl.scrollLeft = next
+        event.preventDefault()
+      }
+    }, { passive: false, capture: true })
+  }
+
   markdownBody.querySelectorAll('table').forEach((table) => {
     const t = table as HTMLTableElement
-    if (t.parentElement && t.parentElement.classList.contains('table-wrapper')) return
+    if (t.parentElement && t.parentElement.classList.contains('table-scroll-container')) return
+
+    // 结构: .table-wrapper -> .table-scroll-container -> table
     const wrapper = document.createElement('div')
     wrapper.className = 'table-wrapper'
+
+    const scrollContainer = document.createElement('div')
+    scrollContainer.className = 'table-scroll-container'
+
     t.parentNode?.insertBefore(wrapper, t)
-    wrapper.appendChild(t)
+    scrollContainer.appendChild(t)
+    wrapper.appendChild(scrollContainer)
   })
 
   requestAnimationFrame(() => {
     markdownBody.querySelectorAll('.table-wrapper').forEach((wrapperEl) => {
       const wrapper = wrapperEl as HTMLElement
+      const scrollContainer = wrapper.querySelector('.table-scroll-container') as HTMLElement
+      const table = scrollContainer.querySelector('table') as HTMLTableElement
+      if (!scrollContainer || !table) return
+
+      // 始终绑定，避免首次测量时机导致桌面滚轮横移失效
+      bindDesktopWheelHorizontal(scrollContainer)
+
+      // 移除旧提示
       const oldHint = wrapper.querySelector('.table-scroll-hint')
       if (oldHint) oldHint.remove()
 
-      const table = wrapper.querySelector('table') as HTMLTableElement | null
-      if (table && table.scrollWidth > wrapper.clientWidth + 2) {
+      // 判断是否需要滚动
+      if (table.scrollWidth > scrollContainer.clientWidth + 1) {
         const hint = document.createElement('div')
         hint.className = 'table-scroll-hint'
-        hint.textContent = '← 左右滑动查看完整表格 →'
+        hint.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11l-5-5-5 5M17 13l-5 5-5-5" transform="rotate(-90 12 12)"/></svg>
+          桌面端滚轮横向查看，移动端左右滑动查看
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11l-5-5-5 5M17 13l-5 5-5-5" transform="rotate(90 12 12)"/></svg>
+        `
+        // 追加到 wrapper 底部，即 scrollContainer 后面
         wrapper.appendChild(hint)
+        requestAnimationFrame(() => wrapper.classList.add('show-hint'))
+      } else {
+        wrapper.classList.remove('show-hint')
       }
     })
   })

@@ -111,18 +111,20 @@ provide('setTocItems', setTocItems)
 provide('setActiveTocId', setActiveTocId)
 
 // 加载文章数据（用 useAsyncData 包裹，SSR 失败不会白屏）
-useAsyncData('posts', async () => { await fetchPosts(); return true })
+useAsyncData('init-posts', async () => { await fetchPosts(); return true })
 
-// 阅读进度条
+// 阅读进度条（需在 onUnmounted 中清理监听器，避免内存泄漏）
+let _progressCleanup = null
+
 onMounted(() => {
   const updateProgress = () => {
     if (!isPostPage.value) {
       readingProgress.value = 0
       return
     }
-    const mainCol = document.querySelector('.main-column')
-    if (mainCol && mainCol.scrollHeight > mainCol.clientHeight) {
-      const progress = mainCol.scrollTop / (mainCol.scrollHeight - mainCol.clientHeight)
+    const mc = document.querySelector('.main-column')
+    if (mc && mc.scrollHeight > mc.clientHeight) {
+      const progress = mc.scrollTop / (mc.scrollHeight - mc.clientHeight)
       readingProgress.value = Math.min(100, Math.max(0, progress * 100))
     } else {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop
@@ -132,8 +134,22 @@ onMounted(() => {
   }
 
   window.addEventListener('scroll', updateProgress, { passive: true })
+  window.addEventListener('resize', updateProgress, { passive: true })
   const mainCol = document.querySelector('.main-column')
   if (mainCol) mainCol.addEventListener('scroll', updateProgress, { passive: true })
+
+  _progressCleanup = () => {
+    window.removeEventListener('scroll', updateProgress)
+    window.removeEventListener('resize', updateProgress)
+    if (mainCol) mainCol.removeEventListener('scroll', updateProgress)
+  }
+})
+
+onUnmounted(() => {
+  if (_progressCleanup) {
+    _progressCleanup()
+    _progressCleanup = null
+  }
 })
 
 // 路由变化时关闭菜单 + 重置侧边栏/TOC

@@ -1,6 +1,5 @@
 <template>
-  <div class="content-area">
-    <!-- 精选文章横向滚动区 -->
+  <div class="home-page content-area">
     <div v-if="featuredPosts.length > 0" class="featured-section">
       <div class="featured-header">
         <h3 class="featured-title">精选文章</h3>
@@ -37,7 +36,6 @@
       </div>
     </div>
 
-    <!-- 工具栏 -->
     <div class="glass-card toolbar-section toolbar-gap">
       <span>全部文章</span>
       <div class="sort-options">
@@ -46,18 +44,21 @@
       </div>
     </div>
 
-    <!-- 文章列表 -->
-    <div class="content-area">
+    <div class="post-list">
       <div v-if="loading" class="loading-spinner"></div>
       <div v-else-if="paginatedPosts.length === 0" style="text-align:center;color:var(--text-tertiary);padding:24px 20px;">暂无文章</div>
-      <template v-else>
+      <TransitionGroup v-else name="float-in" tag="div" class="post-list-transition">
         <NuxtLink
-          v-for="post in paginatedPosts"
+          v-for="(post, index) in paginatedPosts"
           :key="post.id"
           :to="'/post/' + post.id"
           class="post-card fade-in"
           :class="{ 'has-cover': post.cover }"
+          :style="{ '--delay': index * 0.05 + 's' }"
         >
+          <div v-if="post.cover" class="post-cover-wrapper">
+            <img :src="post.cover" :alt="post.title" class="post-cover" loading="lazy">
+          </div>
           <div class="post-info">
             <h2 class="post-title">{{ post.title }}</h2>
             <p class="post-desc">{{ post.description }}</p>
@@ -76,54 +77,55 @@
               </span>
             </div>
           </div>
-          <div v-if="post.cover" class="post-cover-wrapper">
-            <img :src="post.cover" :alt="post.title" class="post-cover" loading="lazy">
-          </div>
         </NuxtLink>
-      </template>
+      </TransitionGroup>
     </div>
 
-    <!-- 悬浮分页器 -->
-    <Transition name="pager-float">
-      <div v-if="totalPages > 1 && !atBottom" class="pg-float" key="float">
-        <button class="pg-float-btn" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <span class="pg-float-num">{{ currentPage }}<span>/{{ totalPages }}</span></span>
-        <button class="pg-float-btn" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-    </Transition>
+    <div v-if="totalPages > 1" class="pagination" :class="{ spread: atBottom }">
+      <button class="page-btn page-prev" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <span class="page-indicator">
+        <em>{{ currentPage }}</em> / {{ totalPages }}
+      </span>
+      <button class="page-btn page-next" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
 
-    <!-- 底部分页器 -->
-    <Transition name="pager-bottom">
-      <nav v-if="totalPages > 1 && atBottom" class="pg-bar" key="bottom">
-        <button class="pg-nav" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-          上一页
-        </button>
-        <div class="pg-nums">
-          <template v-for="(p, i) in pageNumbers" :key="i">
-            <span v-if="p === '...'" class="pg-ellipsis">…</span>
-            <button v-else class="pg-num" :class="{ active: p === currentPage }" @click="goToPage(p)">{{ p }}</button>
-          </template>
-        </div>
-        <button class="pg-nav" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
-          下一页
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </nav>
-    </Transition>
+    <div v-if="totalPages > 1" class="pagination-footer" :class="{ 'footer-visible': atBottom }">
+      <button class="page-prev" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <div class="page-numbers">
+        <template v-for="(p, i) in pageNumbers" :key="i">
+          <span v-if="p === '...'" class="page-ellipsis" :style="{ '--i': i }">...</span>
+          <button v-else class="page-num" :class="{ active: p === currentPage }" :style="{ '--i': i }" @click="goToPage(p)">
+            {{ p }}
+          </button>
+        </template>
+      </div>
+      <button class="page-next" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { config } = useSiteConfig()
-const { posts, loading, fetchPosts, getFeaturedPosts, getSortedPosts } = usePosts()
+const { loading, getFeaturedPosts, getSortedPosts } = usePosts()
+const { siteTitle, siteName, siteDescription, canonicalUrl } = usePageSeo()
 
-// 侧边栏配置
-const setSidebarConfig = inject('setSidebarConfig', () => {})
+const setSidebarConfig = inject<(config: Record<string, boolean>) => void>('setSidebarConfig', () => {})
 setSidebarConfig({
   stats: true,
   siteInfo: true,
@@ -133,43 +135,53 @@ setSidebarConfig({
   toc: false,
 })
 
-// 页面标题
-useHead({
-  title: computed(() => config.value.site?.title || 'Dawnlight | 首页')
+const homeTitle = computed(() => String(config.value.site?.title || '').trim() || siteTitle.value)
+const homeDescription = computed(() => {
+  return String(config.value.site?.slogan || '').trim() || siteDescription.value
 })
 
-// 排序和分页状态
-const sortOrder = ref('desc')
+useSeoMeta({
+  title: () => homeTitle.value,
+  ogTitle: () => homeTitle.value,
+  description: () => homeDescription.value,
+  ogDescription: () => homeDescription.value,
+  ogType: 'website',
+  ogSiteName: () => siteName.value,
+  ogUrl: () => canonicalUrl.value,
+  twitterTitle: () => homeTitle.value,
+  twitterDescription: () => homeDescription.value
+})
+
+useHead(() => ({
+  link: [
+    { rel: 'canonical', href: canonicalUrl.value }
+  ]
+}))
+
+const sortOrder = ref<'desc' | 'asc'>('desc')
 const currentPage = ref(1)
 const itemsPerPage = 6
 const atBottom = ref(false)
-const featuredScrollEl = ref(null)
+const featuredScrollEl = ref<HTMLElement | null>(null)
 
-// 精选文章
 const featuredPosts = computed(() => getFeaturedPosts.value.slice(0, config.value.homepage?.carouselCount || 10))
 
-// 复制精选文章用于无缝循环
 const duplicatedFeatured = computed(() => {
   const fp = featuredPosts.value
-  return [...fp.map((p, i) => ({ ...p, _key: 'a-' + i })), ...fp.map((p, i) => ({ ...p, _key: 'b-' + i }))]
+  return [...fp.map((p, i) => ({ ...p, _key: `a-${i}` })), ...fp.map((p, i) => ({ ...p, _key: `b-${i}` }))]
 })
 
-// 排序后的文章
 const sortedPosts = computed(() => getSortedPosts(sortOrder.value))
-
-// 分页
 const totalPages = computed(() => Math.ceil(sortedPosts.value.length / itemsPerPage))
-
 const paginatedPosts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage
   return sortedPosts.value.slice(start, start + itemsPerPage)
 })
 
-// 页码数组
-const pageNumbers = computed(() => {
+const pageNumbers = computed<(number | '...')[]>(() => {
   const cur = currentPage.value
   const total = totalPages.value
-  const pages = []
+  const pages: (number | '...')[] = []
   if (total <= 9) {
     for (let i = 1; i <= total; i++) pages.push(i)
     return pages
@@ -184,42 +196,52 @@ const pageNumbers = computed(() => {
   return pages
 })
 
-const setSort = (order) => {
+const setSort = (order: 'desc' | 'asc') => {
   sortOrder.value = order
   currentPage.value = 1
 }
 
-const goToPage = (page) => {
+const goToPage = (page: number | '...') => {
+  if (typeof page !== 'number') return
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
-    // 滚动到顶部
     const mainCol = document.querySelector('.main-column')
-    if (mainCol) mainCol.scrollTo({ top: 0, behavior: 'smooth' })
-    else window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (mainCol) {
+      mainCol.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 }
 
-// 精选区自动轮播
-let featuredRAF = null
+let featuredRAF = 0
 let featuredPaused = false
+let cleanupFeaturedHandlers: (() => void) | null = null
+let cleanupScrollHandlers: (() => void) | null = null
+let stopFeaturedWatcher: (() => void) | null = null
 
-onMounted(() => {
-  initFeaturedScroll()
-  initScrollDetect()
-})
-
-onUnmounted(() => {
-  if (featuredRAF) cancelAnimationFrame(featuredRAF)
-})
+const clearFeaturedScroll = () => {
+  if (featuredRAF) {
+    cancelAnimationFrame(featuredRAF)
+    featuredRAF = 0
+  }
+  if (cleanupFeaturedHandlers) {
+    cleanupFeaturedHandlers()
+    cleanupFeaturedHandlers = null
+  }
+}
 
 const initFeaturedScroll = () => {
+  clearFeaturedScroll()
+
   const container = featuredScrollEl.value
   if (!container || featuredPosts.value.length === 0) return
 
-  const firstCard = container.querySelector('.featured-card')
+  const firstCard = container.querySelector('.featured-card') as HTMLElement | null
   const cardWidth = firstCard ? firstCard.offsetWidth : 240
   const computedGap = parseFloat(getComputedStyle(container).gap) || 16
   const originalWidth = featuredPosts.value.length * (cardWidth + computedGap)
+  if (originalWidth <= 0) return
 
   const SPEED = 0.5
   const tick = () => {
@@ -233,200 +255,255 @@ const initFeaturedScroll = () => {
   }
   featuredRAF = requestAnimationFrame(tick)
 
-  // 鼠标悬停暂停
-  const section = container.closest('.featured-section')
-  if (section) {
-    section.onmouseenter = () => { featuredPaused = true }
-    section.onmouseleave = () => { featuredPaused = false }
+  const section = container.closest('.featured-section') as HTMLElement | null
+  if (!section) return
 
-    // 滚轮横向滚动
-    let wheelTimer = null
-    section.addEventListener('wheel', (e) => {
-      let delta = e.shiftKey ? (e.deltaX || e.deltaY) : (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY)
-      if (delta === 0 || container.scrollWidth <= container.clientWidth) return
+  let wheelTimer: ReturnType<typeof setTimeout> | null = null
+  let touchTimer: ReturnType<typeof setTimeout> | null = null
+  let touchStartX = 0
+  let touchStartY = 0
+  let touchStartScroll = 0
+
+  const onMouseEnter = () => { featuredPaused = true }
+  const onMouseLeave = () => { featuredPaused = false }
+  const onWheel = (e: WheelEvent) => {
+    let delta = e.shiftKey
+      ? (e.deltaX || e.deltaY)
+      : (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY)
+    if (delta === 0 || container.scrollWidth <= container.clientWidth) return
+
+    e.preventDefault()
+    featuredPaused = true
+    if (wheelTimer) clearTimeout(wheelTimer)
+    wheelTimer = setTimeout(() => { featuredPaused = false }, 2000)
+
+    container.scrollLeft += delta
+    if (container.scrollLeft >= originalWidth) container.scrollLeft -= originalWidth
+    else if (container.scrollLeft < 0) container.scrollLeft += originalWidth
+  }
+  const onTouchStart = (e: TouchEvent) => {
+    if (!e.touches[0]) return
+    featuredPaused = true
+    if (touchTimer) clearTimeout(touchTimer)
+    touchStartX = e.touches[0].clientX
+    touchStartY = e.touches[0].clientY
+    touchStartScroll = container.scrollLeft
+  }
+  const onTouchMove = (e: TouchEvent) => {
+    if (!e.touches[0]) return
+    const dx = touchStartX - e.touches[0].clientX
+    const dy = touchStartY - e.touches[0].clientY
+
+    if (Math.abs(dx) > Math.abs(dy)) {
       e.preventDefault()
-      featuredPaused = true
-      if (wheelTimer) clearTimeout(wheelTimer)
-      wheelTimer = setTimeout(() => { featuredPaused = false }, 2000)
-      container.scrollLeft += delta
-      if (container.scrollLeft >= originalWidth) container.scrollLeft -= originalWidth
-      else if (container.scrollLeft < 0) container.scrollLeft += originalWidth
-    }, { passive: false, capture: true })
-
-    // 触摸拖拽
-    let touchStartX = 0, touchStartScroll = 0, touchTimer = null
-    section.addEventListener('touchstart', (e) => {
-      featuredPaused = true
-      if (touchTimer) clearTimeout(touchTimer)
-      touchStartX = e.touches[0].clientX
-      touchStartScroll = container.scrollLeft
-    }, { passive: true })
-    section.addEventListener('touchmove', (e) => {
-      const dx = touchStartX - e.touches[0].clientX
       container.scrollLeft = touchStartScroll + dx
-      if (container.scrollLeft >= originalWidth) { container.scrollLeft -= originalWidth; touchStartScroll -= originalWidth }
-      else if (container.scrollLeft < 0) { container.scrollLeft += originalWidth; touchStartScroll += originalWidth }
-    }, { passive: true })
-    section.addEventListener('touchend', () => {
-      touchTimer = setTimeout(() => { featuredPaused = false }, 2000)
-    }, { passive: true })
+      if (container.scrollLeft >= originalWidth) {
+        container.scrollLeft -= originalWidth
+        touchStartScroll -= originalWidth
+      } else if (container.scrollLeft < 0) {
+        container.scrollLeft += originalWidth
+        touchStartScroll += originalWidth
+      }
+    }
+  }
+  const onTouchEnd = () => {
+    if (touchTimer) clearTimeout(touchTimer)
+    touchTimer = setTimeout(() => { featuredPaused = false }, 2000)
+  }
+
+  section.addEventListener('mouseenter', onMouseEnter)
+  section.addEventListener('mouseleave', onMouseLeave)
+  section.addEventListener('wheel', onWheel, { passive: false, capture: true })
+  section.addEventListener('touchstart', onTouchStart, { passive: true })
+  section.addEventListener('touchmove', onTouchMove, { passive: false })
+  section.addEventListener('touchend', onTouchEnd, { passive: true })
+
+  cleanupFeaturedHandlers = () => {
+    if (wheelTimer) clearTimeout(wheelTimer)
+    if (touchTimer) clearTimeout(touchTimer)
+    section.removeEventListener('mouseenter', onMouseEnter)
+    section.removeEventListener('mouseleave', onMouseLeave)
+    section.removeEventListener('wheel', onWheel, true)
+    section.removeEventListener('touchstart', onTouchStart)
+    section.removeEventListener('touchmove', onTouchMove)
+    section.removeEventListener('touchend', onTouchEnd)
   }
 }
 
-// 检测是否滚到底部，切换分页器形态
-const initScrollDetect = () => {
-  const check = () => {
-    const mainCol = document.querySelector('.main-column')
-    // 桌面端：.main-column 自身滚动
-    if (mainCol && mainCol.scrollHeight > mainCol.clientHeight + 20) {
-      atBottom.value = mainCol.scrollHeight - mainCol.scrollTop - mainCol.clientHeight < 80
-      return
-    }
-    // 平板/移动端：页面整体滚动（body / html / layout-container）
-    const docH = Math.max(
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight
-    )
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-    if (docH - window.innerHeight > 20) {
-      atBottom.value = docH - scrollTop - window.innerHeight < 120
-    } else {
-      // 内容不足一屏时，视为已到底部以显示底部分页器
-      atBottom.value = true
-    }
+const clearScrollDetect = () => {
+  if (cleanupScrollHandlers) {
+    cleanupScrollHandlers()
+    cleanupScrollHandlers = null
   }
+}
+
+const initScrollDetect = () => {
+  clearScrollDetect()
+
+  const check = () => {
+    const mainCol = document.querySelector('.main-column') as HTMLElement | null
+    if (mainCol && getComputedStyle(mainCol).overflowY !== 'visible') {
+      if (mainCol.scrollHeight > mainCol.clientHeight + 20) {
+        atBottom.value = mainCol.scrollHeight - mainCol.scrollTop - mainCol.clientHeight < 80
+        return
+      }
+    }
+
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop
+    const docH = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)
+    const winH = window.innerHeight
+    atBottom.value = docH > winH + 20 ? (docH - scrollY - winH < 120) : true
+  }
+
+  const mainCol = document.querySelector('.main-column') as HTMLElement | null
+  const layoutContainer = document.querySelector('.layout-container') as HTMLElement | null
+
   window.addEventListener('scroll', check, { passive: true })
   window.addEventListener('resize', check, { passive: true })
-  const mainCol = document.querySelector('.main-column')
   if (mainCol) mainCol.addEventListener('scroll', check, { passive: true })
-  // 额外监听 layout-container 滚动（平板可能用到）
-  const layoutContainer = document.querySelector('.layout-container')
   if (layoutContainer && layoutContainer !== mainCol) {
     layoutContainer.addEventListener('scroll', check, { passive: true })
   }
-  // 首次检测
   requestAnimationFrame(check)
+
+  cleanupScrollHandlers = () => {
+    window.removeEventListener('scroll', check)
+    window.removeEventListener('resize', check)
+    if (mainCol) mainCol.removeEventListener('scroll', check)
+    if (layoutContainer && layoutContainer !== mainCol) {
+      layoutContainer.removeEventListener('scroll', check)
+    }
+  }
 }
+
+onMounted(() => {
+  stopFeaturedWatcher = watch(() => featuredPosts.value.length, async (len) => {
+    if (len <= 0) {
+      clearFeaturedScroll()
+      return
+    }
+    await nextTick()
+    initFeaturedScroll()
+  }, { immediate: true })
+
+  initScrollDetect()
+})
+
+onUnmounted(() => {
+  if (stopFeaturedWatcher) {
+    stopFeaturedWatcher()
+    stopFeaturedWatcher = null
+  }
+  clearFeaturedScroll()
+  clearScrollDetect()
+})
 </script>
 
 <style scoped>
-/* 工具栏与文章列表间距 */
-.toolbar-gap { margin-bottom: 0.75rem; }
+.toolbar-gap {
+  margin-bottom: 0.25rem;
+}
 
-/* ===== 悬浮分页器 ===== */
-.pg-float {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 900;
+.post-list {
   display: flex;
-  align-items: center;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow-md);
-  gap: 6px;
-}
-.pg-float-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border: none; background: none;
-  cursor: pointer; color: var(--text-secondary); border-radius: 8px;
-  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1); padding: 0;
-}
-.pg-float-btn svg { width: 14px; height: 14px; }
-.pg-float-btn:hover:not(:disabled) {
-  background: var(--accent-light);
-  color: var(--accent-color);
-  transform: scale(1.05);
-}
-.pg-float-btn:active:not(:disabled) {
-  transform: scale(0.95);
-}
-.pg-float-btn:disabled { opacity: .25; cursor: default; }
-.pg-float-num {
-  font-size: 13px; font-weight: 600; color: var(--text-primary);
-  padding: 0 4px; user-select: none; white-space: nowrap;
-}
-.pg-float-num span { font-weight: 400; color: var(--text-tertiary); font-size: 12px; }
-
-.pager-float-enter-active { transition: opacity .25s, transform .25s ease; }
-.pager-float-leave-active { transition: opacity .15s, transform .15s; }
-.pager-float-enter-from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-.pager-float-leave-to   { opacity: 0; transform: translateX(-50%) translateY(6px); }
-
-/* ===== 底部分页器 ===== */
-.pg-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  margin: 4px 0 4px;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.pager-bottom-enter-active { transition: opacity .25s ease; }
-.pager-bottom-leave-active { transition: opacity .15s ease; }
-.pager-bottom-enter-from, .pager-bottom-leave-to { opacity: 0; }
-
-/* 上一页/下一页按钮 */
-.pg-nav {
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 5px 8px; border: none; border-radius: 8px;
-  background: none; cursor: pointer;
-  font-size: 13px; font-weight: 500; color: var(--text-tertiary);
-  transition: color .2s, background .2s; white-space: nowrap;
-}
-.pg-nav svg { width: 14px; height: 14px; flex-shrink: 0; }
-.pg-nav:hover:not(:disabled) { color: var(--text-primary); background: rgba(0,0,0,.04); }
-[data-theme="dark"] .pg-nav:hover:not(:disabled) { background: rgba(255,255,255,.06); }
-.pg-nav:disabled { opacity: .3; cursor: default; }
-
-/* 页码区域 */
-.pg-nums { display: flex; align-items: center; gap: 1px; }
-
-.pg-num {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 32px; height: 32px;
-  font-size: 13px; font-weight: 500;
-  color: var(--text-secondary); background: none;
-  border: none; border-radius: 8px;
-  cursor: pointer; padding: 0 2px;
-  transition: color .15s, background .15s;
-  user-select: none;
-}
-.pg-num:hover:not(.active) { color: var(--text-primary); background: rgba(0,0,0,.04); }
-[data-theme="dark"] .pg-num:hover:not(.active) { background: rgba(255,255,255,.06); }
-.pg-num.active {
-  color: var(--accent-color); font-weight: 700;
-  background: rgba(var(--accent-rgb), .08);
-  pointer-events: none;
+@media (max-width: 1024px) {
+  .featured-scroll-wrapper {
+    margin: 0 -6px;
+  }
 }
 
-.pg-ellipsis {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 12px; height: 32px;
-  font-size: 14px; color: var(--text-tertiary);
-  user-select: none; letter-spacing: 2px;
-}
-
-/* ===== 移动端适配 ===== */
 @media (max-width: 768px) {
-  .pg-float { bottom: 20px; padding: 3px; }
-  .pg-float-btn { width: 26px; height: 26px; }
-  .pg-float-btn svg { width: 11px; height: 11px; }
-  .pg-float-num { font-size: 12px; padding: 0 2px; }
-  .pg-float-num span { font-size: 11px; }
-  .pg-bar { gap: 2px; margin: 2px 0 4px; }
-  .pg-nav { padding: 4px 6px; font-size: 12px; }
-  .pg-num { min-width: 28px; height: 28px; font-size: 12px; border-radius: 6px; }
-  .pg-ellipsis { height: 28px; font-size: 12px; }
+  .home-page {
+    gap: 10px;
+  }
+
+  .featured-header {
+    padding: 0 4px;
+    align-items: center;
+  }
+
+  .featured-title {
+    font-size: 0.98rem;
+  }
+
+  .toolbar-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .sort-options {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .post-list {
+    gap: 10px;
+  }
+
+  :deep(.post-meta-tags) {
+    margin-left: 0 !important;
+  }
 }
+
 @media (max-width: 480px) {
-  .pg-nav span { display: none; }
-  .pg-nav { padding: 5px 6px; }
-  .pg-nums { gap: 1px; }
-  .pg-num { min-width: 26px; height: 26px; font-size: 11px; }
-  .pg-ellipsis { height: 26px; font-size: 11px; min-width: 10px; }
+  .featured-section {
+    margin-bottom: 2px;
+  }
+
+  .featured-scroll-wrapper {
+    margin: 0 -12px;
+    padding: 0 6px;
+  }
+
+  .featured-card {
+    flex-basis: 172px;
+    height: 108px;
+  }
+
+  .toolbar-section {
+    padding: 6px 0;
+  }
+
+  .sort-options :deep(.sort-btn) {
+    padding: 2px 7px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .featured-scroll-hint {
+    display: none;
+  }
+
+  .post-list {
+    gap: 9px;
+  }
+
+  :deep(.post-meta) {
+    gap: 5px 8px;
+  }
+}
+
+@media (max-width: 390px) {
+  .featured-card {
+    flex-basis: 162px;
+    height: 102px;
+  }
+
+  .toolbar-section {
+    font-size: 0.88rem;
+  }
+
+  .sort-options :deep(.sort-btn) {
+    font-size: 0.72rem;
+  }
 }
 </style>

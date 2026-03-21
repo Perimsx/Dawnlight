@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 返回首页悬浮按钮 -->
-    <NuxtLink v-if="showBackBtn && !mobileMenuOpen" class="floating-back-btn visible" to="/" aria-label="返回首页">
+    <NuxtLink v-if="shouldShowBackBtn" class="floating-back-btn visible" to="/" aria-label="返回首页">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -10,7 +10,7 @@
     </NuxtLink>
 
     <!-- 评论悬浮按钮（文章页） -->
-    <button v-if="showCommentBtn && !mobileMenuOpen" class="floating-comment-btn visible" aria-label="跳转评论区" @click="scrollToComments">
+    <button v-if="shouldShowCommentBtn" class="floating-comment-btn visible" aria-label="跳转评论区" @click="scrollToComments">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -18,7 +18,7 @@
     </button>
 
     <!-- 移动端目录按钮 -->
-    <button v-if="showTocBtn && !mobileMenuOpen" class="mobile-toc-btn visible" aria-label="文章目录" @click="mobileTocOpen = true">
+    <button v-if="shouldShowTocBtn" class="mobile-toc-btn visible" aria-label="文章目录" @click="mobileTocOpen = true">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -133,6 +133,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:searchOpen'])
+const route = useRoute()
 
 const { config } = useSiteConfig()
 const { posts } = usePosts()
@@ -144,7 +145,168 @@ const searchLoading = ref(false)
 const searchDone = ref(false)
 const activeSearchIndex = ref(-1)
 const mobileTocOpen = ref(false)
+const isMobileViewport = ref(false)
+const isCommentsSectionVisible = ref(false)
+const currentScrollTop = ref(0)
+const isNearTop = computed(() => currentScrollTop.value < 120)
+const shouldShowBackBtn = computed(() => {
+  if (!props.showBackBtn || props.mobileMenuOpen) return false
+  if (!isMobileViewport.value) return true
+  return !isNearTop.value
+})
+const shouldShowCommentBtn = computed(() => {
+  if (!props.showCommentBtn || props.mobileMenuOpen) return false
+  if (!isMobileViewport.value) return true
+  return !isCommentsSectionVisible.value
+})
+const shouldShowTocBtn = computed(() => {
+  if (!props.showTocBtn || props.mobileMenuOpen) return false
+  if (mobileTocOpen.value) return false
+  if (!isMobileViewport.value) return true
+  return !isCommentsSectionVisible.value
+})
 let debounceTimer = null
+let mobileViewportQuery = null
+let commentsObserver = null
+let commentsObserverRetryTimer = null
+let commentsObserverRefreshTimer = null
+let commentsObserverRetryCount = 0
+const COMMENTS_OBSERVER_MAX_RETRY = 18
+const COMMENTS_OBSERVER_RETRY_DELAY = 120
+let scrollRaf = 0
+let mainScrollContainer = null
+
+const clearCommentsObserverRetry = () => {
+  if (commentsObserverRetryTimer) {
+    clearTimeout(commentsObserverRetryTimer)
+    commentsObserverRetryTimer = null
+  }
+  commentsObserverRetryCount = 0
+}
+
+const clearCommentsObserverRefresh = () => {
+  if (commentsObserverRefreshTimer) {
+    clearTimeout(commentsObserverRefreshTimer)
+    commentsObserverRefreshTimer = null
+  }
+}
+
+const updateCommentsVisibilityFallback = () => {
+  if (typeof window === 'undefined') return
+  if (!props.showCommentBtn || !isMobileViewport.value) {
+    isCommentsSectionVisible.value = false
+    return
+  }
+
+  const commentsEl = document.getElementById('comments-section')
+  if (!commentsEl) {
+    isCommentsSectionVisible.value = false
+    return
+  }
+
+  const rect = commentsEl.getBoundingClientRect()
+  const viewportHeight = window.innerHeight || document.documentElement?.clientHeight || 0
+  if (viewportHeight <= 0 || rect.height <= 0) {
+    isCommentsSectionVisible.value = false
+    return
+  }
+
+  const visibleHeight = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0)
+  const visibleRatio = visibleHeight > 0 ? visibleHeight / rect.height : 0
+  isCommentsSectionVisible.value = visibleRatio >= 0.12
+}
+
+const scheduleCommentsObserverRefresh = (delay = 240) => {
+  if (typeof window === 'undefined') return
+  clearCommentsObserverRefresh()
+  commentsObserverRefreshTimer = setTimeout(() => {
+    commentsObserverRefreshTimer = null
+    setupCommentsObserver()
+    updateCommentsVisibilityFallback()
+  }, delay)
+}
+
+const stopCommentsObserver = () => {
+  clearCommentsObserverRetry()
+  clearCommentsObserverRefresh()
+  if (commentsObserver) {
+    commentsObserver.disconnect()
+    commentsObserver = null
+  }
+  isCommentsSectionVisible.value = false
+}
+
+const setupCommentsObserver = () => {
+  stopCommentsObserver()
+  if (typeof window === 'undefined') return
+  if (!props.showCommentBtn || !isMobileViewport.value) return
+
+  const tryBindObserver = () => {
+    const commentsEl = document.getElementById('comments-section')
+    if (!commentsEl) {
+      if (commentsObserverRetryCount < COMMENTS_OBSERVER_MAX_RETRY) {
+        commentsObserverRetryCount += 1
+        commentsObserverRetryTimer = setTimeout(tryBindObserver, COMMENTS_OBSERVER_RETRY_DELAY)
+      }
+      return
+    }
+
+    clearCommentsObserverRetry()
+
+    const observerRoot = (() => {
+      if (!mainScrollContainer) return null
+      const overflowY = window.getComputedStyle(mainScrollContainer).overflowY
+      const isScrollable = overflowY === 'auto' || overflowY === 'scroll'
+      return isScrollable ? mainScrollContainer : null
+    })()
+
+    commentsObserver = new IntersectionObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) return
+      if (entry.isIntersecting) {
+        isCommentsSectionVisible.value = true
+      } else {
+        updateCommentsVisibilityFallback()
+      }
+    }, {
+      root: observerRoot,
+      threshold: [0, 0.12, 0.3]
+    })
+
+    commentsObserver.observe(commentsEl)
+    updateCommentsVisibilityFallback()
+  }
+
+  tryBindObserver()
+}
+
+const handleViewportChange = () => {
+  isMobileViewport.value = Boolean(mobileViewportQuery?.matches)
+  nextTick(() => {
+    setupCommentsObserver()
+    updateCommentsVisibilityFallback()
+  })
+}
+
+const readScrollTop = () => {
+  if (typeof window === 'undefined') return 0
+  return window.pageYOffset || document.documentElement?.scrollTop || document.body?.scrollTop || 0
+}
+
+const updateScrollState = () => {
+  currentScrollTop.value = readScrollTop()
+}
+
+const handleWindowScroll = () => {
+  if (scrollRaf || typeof window === 'undefined') return
+  scrollRaf = window.requestAnimationFrame(() => {
+    scrollRaf = 0
+    updateScrollState()
+    if (props.showCommentBtn && isMobileViewport.value) {
+      updateCommentsVisibilityFallback()
+    }
+  })
+}
 
 // 打开移动端目录时自动滚动到当前高亮项
 watch(mobileTocOpen, (val) => {
@@ -176,13 +338,66 @@ watch(() => props.searchOpen, (val) => {
   }
 })
 
+watch(() => props.showCommentBtn, () => {
+  nextTick(() => {
+    setupCommentsObserver()
+    updateCommentsVisibilityFallback()
+    scheduleCommentsObserverRefresh()
+  })
+})
+
+watch(() => route.fullPath, () => {
+  nextTick(() => {
+    setupCommentsObserver()
+    updateScrollState()
+    updateCommentsVisibilityFallback()
+    scheduleCommentsObserverRefresh()
+  })
+})
+
 // 全局快捷键
 onMounted(() => {
   document.addEventListener('keydown', handleGlobalKeydown)
+  if (typeof window === 'undefined') return
+
+  mobileViewportQuery = window.matchMedia('(max-width: 768px)')
+  if (typeof mobileViewportQuery.addEventListener === 'function') {
+    mobileViewportQuery.addEventListener('change', handleViewportChange)
+  } else if (typeof mobileViewportQuery.addListener === 'function') {
+    mobileViewportQuery.addListener(handleViewportChange)
+  }
+  window.addEventListener('scroll', handleWindowScroll, { passive: true })
+  mainScrollContainer = document.querySelector('.main-column')
+  if (mainScrollContainer) {
+    mainScrollContainer.addEventListener('scroll', handleWindowScroll, { passive: true })
+  }
+  updateScrollState()
+  handleViewportChange()
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleGlobalKeydown)
+  clearTimeout(debounceTimer)
+
+  if (mobileViewportQuery) {
+    if (typeof mobileViewportQuery.removeEventListener === 'function') {
+      mobileViewportQuery.removeEventListener('change', handleViewportChange)
+    } else if (typeof mobileViewportQuery.removeListener === 'function') {
+      mobileViewportQuery.removeListener(handleViewportChange)
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('scroll', handleWindowScroll)
+    if (mainScrollContainer) {
+      mainScrollContainer.removeEventListener('scroll', handleWindowScroll)
+      mainScrollContainer = null
+    }
+    if (scrollRaf) {
+      window.cancelAnimationFrame(scrollRaf)
+      scrollRaf = 0
+    }
+  }
+  stopCommentsObserver()
 })
 
 const handleGlobalKeydown = (e) => {
@@ -292,7 +507,13 @@ const escapeHtml = (text) => {
 
 const scrollToComments = () => {
   const el = document.getElementById('comments-section')
-  if (el) el.scrollIntoView({ behavior: 'smooth' })
+  if (el) {
+    if (isMobileViewport.value) {
+      isCommentsSectionVisible.value = true
+      scheduleCommentsObserverRefresh(300)
+    }
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 }
 
 const scrollToHeading = (id) => {

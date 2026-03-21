@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="admin-layout-wrapper">
     <div id="admin-panel" class="admin-panel a-page">
       <!-- Mobile Menu Button -->
@@ -112,19 +112,19 @@ const { config: siteConfig } = useSiteConfig()
 
 const mobileMenuOpen = ref(false)
 
-// 进入后台时解除前台对 html/body 的滚动锁定（前台 style.css 有 overflow:hidden）
+// 进入后台时解除前台对 html/body 的滚动锁定（前台 style.css 有 overflow:hidden）。
 useHead({
   htmlAttrs: { 'data-admin': '1' },
   bodyAttrs: { 'data-admin': '1' }
 })
 
-// 管理员头像：优先 site.logo → author.avatar → fallback SVG
+// 管理员头像：优先 site.logo -> author.avatar -> fallback SVG。
 const avatarSrc = computed(() => siteConfig.value?.site?.logo || siteConfig.value?.author?.avatar || '')
 const avatarFailed = ref(false)
 const adminAvatar = computed(() => avatarSrc.value && !avatarFailed.value ? avatarSrc.value : '')
 const onAvatarError = () => { avatarFailed.value = true }
 
-// 验证登录状态
+// 验证登录状态。
 onMounted(async () => {
   const isValid = await verify()
   if (!isValid) {
@@ -140,7 +140,7 @@ const toggleTheme = () => {
   localStorage.setItem('themeMode', next)
 }
 
-// 退出登录（二次确认）
+// 退出登录（二次确认）。
 const handleLogout = async () => {
   const ok = await ui.confirm('确定要退出登录吗？', { confirmText: '退出', danger: true })
   if (!ok) return

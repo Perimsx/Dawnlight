@@ -1,7 +1,7 @@
 import { validateToken } from '../../utils/auth'
 
 export default defineEventHandler((event) => {
-    // Check header
+    // 从请求头提取 token
     const token = getHeader(event, 'x-admin-token')
 
     if (token && validateToken(token)) {

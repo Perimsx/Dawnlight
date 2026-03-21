@@ -1,79 +1,100 @@
+type LoginResult = { success: boolean, message: string }
+
 export const useAdmin = () => {
-    const token = useCookie('admin-token')
-    const isAuthenticated = computed(() => !!token.value)
+  const token = useCookie<string | null>('admin-token')
+  const isAuthenticated = computed(() => !!token.value)
 
-    const login = async (password: string) => {
-        try {
-            const data = await $fetch<{ success: boolean; data?: { token: string }; message?: string }>('/api/auth/login', {
-                method: 'POST',
-                body: { password }
-            })
-            if (data.success && data.data?.token) {
-                token.value = data.data.token
-                return { success: true, message: data.message || '登录成功' }
-            }
-            return { success: false, message: data.message || '密码错误' }
-        } catch (e: any) {
-            // $fetch 在 4xx/5xx 会抛异常，这里把后端 message 透传给 UI
-            const msg = e?.data?.message || e?.message || '登录失败'
-            return { success: false, message: msg }
+  const login = async (password: string): Promise<LoginResult> => {
+    try {
+      const data = await $fetch<{ success: boolean; data?: { token: string }; message?: string }>(
+        '/api/auth/login',
+        {
+          method: 'POST',
+          credentials: 'include',
+          body: { password }
         }
+      )
+
+      if (data.success && data.data?.token) {
+        token.value = data.data.token
+        return { success: true, message: data.message || '登录成功' }
+      }
+      return { success: false, message: data.message || '密码错误' }
+    } catch (error: any) {
+      const message = error?.data?.message || error?.message || '登录失败'
+      return { success: false, message }
+    }
+  }
+
+  const logout = async () => {
+    try {
+      await $fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'x-admin-token': token.value || '' }
+      })
+    } catch {
+      // 登出请求失败时忽略，仍然清除本地 token
+    }
+    token.value = null
+  }
+
+  const verify = async () => {
+    if (!token.value) return false
+    try {
+      const data = await $fetch<{ success: boolean }>('/api/auth/verify', {
+        credentials: 'include',
+        headers: { 'x-admin-token': token.value || '' }
+      })
+      return data.success
+    } catch {
+      return false
+    }
+  }
+
+  const authFetch = async <T = any>(url: string, opts: any = {}): Promise<T> => {
+    if (!token.value) {
+      if (process.client) {
+        navigateTo('/admin/login')
+      }
+      const unauthorizedError: any = new Error('UNAUTHORIZED')
+      unauthorizedError.statusCode = 401
+      throw unauthorizedError
     }
 
-    const logout = async () => {
-        try {
-            await $fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'x-admin-token': token.value || '' }
-            })
-        } catch {}
+    try {
+      return await $fetch<T>(url, {
+        ...opts,
+        timeout: typeof opts.timeout === 'number' ? opts.timeout : 15000,
+        credentials: 'include',
+        headers: {
+          ...opts.headers,
+          'x-admin-token': token.value || ''
+        }
+      })
+    } catch (error: any) {
+      const status = error?.statusCode || error?.response?.status || error?.data?.statusCode
+      if (status === 401) {
         token.value = null
-    }
-
-    const verify = async () => {
-        if (!token.value) return false
-        try {
-            const data = await $fetch<{ success: boolean }>('/api/auth/verify', {
-                headers: { 'x-admin-token': token.value || '' }
-            })
-            return data.success
-        } catch {
-            return false
+        if (process.client) {
+          try {
+            useAdminUI().toast('登录已过期，请重新登录', 'warning')
+          } catch {
+            // 忽略 UI 回调错误，优先执行跳转
+          }
+          navigateTo('/admin/login')
         }
+      }
+      throw error
     }
+  }
 
-    const authFetch = async (url: string, opts: any = {}) => {
-        try {
-            return await $fetch(url, {
-                ...opts,
-                headers: {
-                    ...opts.headers,
-                    'x-admin-token': token.value || ''
-                }
-            })
-        } catch (e: any) {
-            // 统一处理 401：清 token 并跳转登录
-            const status = e?.statusCode || e?.response?.status || e?.data?.statusCode
-            if (status === 401) {
-                token.value = null
-                if (process.client) {
-                    try {
-                        const ui = useAdminUI()
-                        ui.toast('登录已过期，请重新登录', 'warning')
-                    } catch {}
-                    navigateTo('/admin/login')
-                }
-            }
-            throw e
-        }
-    }
-
-    return {
-        token,
-        isAuthenticated,
-        login,
-        logout,
-        verify,
-        authFetch
-    }
+  return {
+    token,
+    isAuthenticated,
+    login,
+    logout,
+    verify,
+    authFetch
+  }
 }

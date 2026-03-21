@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <div class="a-topbar">
       <div>
@@ -110,7 +110,9 @@ const loadLinks = async () => {
       links.value = data.data?.recommended || []
       applicationInfo.value = data.data?.applicationInfo || ''
     }
-  } catch {}
+  } catch {
+    ui.toast('加载友链失败，请稍后重试', 'error')
+  }
   loading.value = false
 }
 
@@ -141,7 +143,9 @@ const saveLink = async () => {
     }
     showModal.value = false
     await loadLinks()
-  } catch {}
+  } catch (e) {
+    ui.toast(e?.data?.message || '保存失败', 'error')
+  }
 }
 
 const deleteLink = async (link) => {
@@ -151,7 +155,9 @@ const deleteLink = async (link) => {
     await authFetch(`/api/links/${encodeURIComponent(link.name)}`, { method: 'DELETE' })
     await loadLinks()
     ui.toast('删除成功', 'success')
-  } catch {}
+  } catch (e) {
+    ui.toast(e?.data?.message || '删除失败', 'error')
+  }
 }
 
 const saveApplicationInfo = async () => {
@@ -182,4 +188,19 @@ onMounted(loadLinks)
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 .links-empty { text-align:center; padding:50px 20px; color:var(--a-text-3); font-size:14px; display:flex; flex-direction:column; align-items:center; gap:10px; }
 .avatar-preview { width:36px; height:36px; border-radius:8px; object-fit:cover; border:1px solid var(--a-border); flex-shrink:0; }
+
+@media (max-width: 768px) {
+  .links-admin-grid { grid-template-columns: 1fr; }
+  .link-admin-card { padding: 12px; gap: 10px; }
+  .link-admin-avatar img, .link-avatar-placeholder { width: 40px; height: 40px; }
+  .modal-container { width: calc(100% - 20px); padding: 18px; max-height: 90vh; }
+  .modal-actions { flex-wrap: wrap; }
+  .modal-actions .a-btn { flex: 1; min-width: 120px; }
+}
+
+@media (max-width: 480px) {
+  .link-admin-card { flex-wrap: wrap; }
+  .link-admin-actions { width: 100%; justify-content: flex-end; }
+  .link-admin-actions .a-btn { flex: 1; }
+}
 </style>

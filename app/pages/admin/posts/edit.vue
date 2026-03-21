@@ -138,6 +138,27 @@
               <label class="form-label">发布时间</label>
               <input type="date" v-model="postData.date" class="form-input">
             </div>
+            <div class="form-field">
+              <label class="form-label">自定义 URL</label>
+              <input
+                type="text"
+                v-model="postData.customSlug"
+                class="form-input"
+                placeholder="my-first-post"
+              >
+              <div v-if="slugPreview" class="form-help">
+                前台地址：`/post/{{ slugPreview }}`
+              </div>
+              <div v-else class="form-help">
+                留空时将自动生成时间戳 URL
+              </div>
+              <div v-if="isSlugInputInvalid" class="form-help form-help-warning">
+                仅支持小写字母、数字和短横线
+              </div>
+              <div v-else-if="showSlugChangeWarning" class="form-help form-help-warning">
+                修改后旧链接会失效，保存后会自动跳转到新地址
+              </div>
+            </div>
             <div class="switch-row">
               <span class="switch-label">精选文章</span>
               <label class="a-toggle" title="精选文章">
@@ -272,7 +293,8 @@ const postData = reactive({
   cover: '',
   tags: [],
   date: new Date().toISOString().split('T')[0],
-  featured: false
+  featured: false,
+  customSlug: ''
 })
 
 const newTag = ref('')
@@ -290,8 +312,26 @@ const editorTextarea = ref(null)
 const previewBody = ref(null)
 const titleInputEl = ref(null)
 const tagInputEl = ref(null)
+const currentSlug = ref('')
 
 const previewHtml = computed(() => parse(postData.content))
+
+const normalizeSlugInput = (raw) => {
+  return String(raw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+const normalizedCustomSlug = computed(() => normalizeSlugInput(postData.customSlug))
+const slugPreview = computed(() => normalizedCustomSlug.value || currentSlug.value)
+const isSlugInputInvalid = computed(() => Boolean(postData.customSlug.trim()) && !normalizedCustomSlug.value)
+const showSlugChangeWarning = computed(() => {
+  return !isNew.value && Boolean(normalizedCustomSlug.value) && normalizedCustomSlug.value !== currentSlug.value
+})
 
 /**
  * 计算文章有效字数
@@ -486,12 +526,15 @@ const savePost = async () => {
       cover: postData.cover,
       tags: postData.tags,
       date: postData.date,
-      featured: postData.featured
+      featured: postData.featured,
+      customSlug: postData.customSlug
     }
 
     if (isNew.value) {
       const res = await authFetch('/api/posts', { method: 'POST', body: payload })
       if (res?.success && res.data?.id) {
+        currentSlug.value = res.data.id
+        postData.customSlug = res.data.id
         clearDraft()
         ui.toast('创建成功', 'success')
         showSavedIndicator.value = true
@@ -503,16 +546,22 @@ const savePost = async () => {
     } else if (postId.value) {
       const res = await authFetch(`/api/posts/${postId.value}`, { method: 'PUT', body: payload })
       if (res?.success) {
+        const nextId = res.data?.id || String(postId.value)
+        currentSlug.value = nextId
+        postData.customSlug = nextId
         clearDraft()
         ui.toast('保存成功', 'success')
         showSavedIndicator.value = true
         setTimeout(() => { showSavedIndicator.value = false }, 2000)
+        if (nextId !== String(postId.value)) {
+          await navigateTo(`/admin/posts/edit?id=${encodeURIComponent(nextId)}`)
+        }
       } else {
         ui.toast(res?.message || '保存失败', 'error')
       }
     }
-  } catch {
-    ui.toast('保存失败', 'error')
+  } catch (error) {
+    ui.toast(error?.data?.message || error?.message || '保存失败', 'error')
   }
   saving.value = false
 }
@@ -523,7 +572,7 @@ let lastSavedHash = ''
 let autoSaveTimer = null
 let hasUnsavedChanges = false
 
-const getContentHash = () => `${postData.title}|${postData.content}|${postData.description}`
+const getContentHash = () => `${postData.title}|${postData.content}|${postData.description}|${postData.customSlug}`
 
 const saveDraft = () => {
   const hash = getContentHash()
@@ -566,7 +615,8 @@ const restoreDraft = () => {
     cover: pendingDraft.cover || '',
     tags: pendingDraft.tags || [],
     date: pendingDraft.date || postData.date,
-    featured: pendingDraft.featured || false
+    featured: pendingDraft.featured || false,
+    customSlug: pendingDraft.customSlug || ''
   })
   showDraftPrompt.value = false
   pendingDraft = null
@@ -580,7 +630,7 @@ const dismissDraft = () => {
 }
 
 // 监听内容变化标记未保存
-watch([() => postData.title, () => postData.content, () => postData.description], () => {
+watch([() => postData.title, () => postData.content, () => postData.description, () => postData.customSlug], () => {
   hasUnsavedChanges = true
 })
 
@@ -620,6 +670,8 @@ onMounted(async () => {
       const data = await authFetch(`/api/posts/${postId.value}`)
       if (data.success) {
         Object.assign(postData, data.data)
+        currentSlug.value = data.data?.id || ''
+        postData.customSlug = data.data?.id || ''
       }
       const contentData = await authFetch(`/api/posts/${postId.value}/content`)
       if (contentData.success) {
@@ -782,6 +834,18 @@ onUnmounted(() => {
   margin-bottom: 4px;
 }
 
+.form-help {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--a-text-3);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.form-help-warning {
+  color: #d97706;
+}
+
 .form-input {
   width: 100%;
   padding: 7px 10px;
@@ -873,9 +937,18 @@ onUnmounted(() => {
 }
 @media (max-width:768px) {
   .editor-header { flex-direction:column; align-items:stretch; gap:12px; padding:12px 16px; }
+  .editor-header-actions { justify-content:flex-end; }
   .editor-card { min-height:350px; }
   .toolbar-btn { width:44px; height:44px; min-width:44px; }
   .markdown-input { font-size:16px; }
+  /* 侧边栏在移动端折叠，减少占用空间 */
+  .editor-sidebar { gap:8px; }
+  .sidebar-card-body { padding:8px; }
+  .form-input { font-size:14px; }
+  .tags-container { min-height:40px; padding:8px 10px; }
+  .tag-chip { padding:4px 10px; font-size:12px; }
+  .cover-preview { aspect-ratio:16/8; }
+  .draft-prompt { max-width:calc(100vw - 32px); padding:20px; }
 }
 
 /* 美化滚动条 - 支持现代浏览器和 Firefox */

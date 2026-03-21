@@ -1,6 +1,5 @@
 <template>
   <div class="archive-page fade-in">
-    <!-- 顶部统计 -->
     <div class="archive-header-card">
       <div class="archive-header-main">
         <h1 class="archive-page-title">
@@ -36,7 +35,6 @@
       </div>
     </div>
 
-    <!-- 年份时间线 -->
     <div class="archive-timeline" :data-density="density">
       <section v-for="year in sortedYears" :key="year" class="archive-year-block" :data-year="year">
         <header class="archive-year-heading">
@@ -58,25 +56,45 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { config } = useSiteConfig()
 const { posts, getPostsByYear } = usePosts()
+const { siteTitle, siteName, siteDescription, canonicalUrl } = usePageSeo()
 
-// 侧边栏
-const setSidebarConfig = inject('setSidebarConfig', () => {})
+const setSidebarConfig = inject<(config: Record<string, boolean>) => void>('setSidebarConfig', () => {})
 setSidebarConfig({
-  stats: false, siteInfo: false, social: false,
-  announcement: false, log: true, toc: false
+  stats: false,
+  siteInfo: false,
+  social: false,
+  announcement: false,
+  log: true,
+  toc: false
 })
 
-useHead({
-  title: computed(() => `${config.value.site?.title || 'Dawnlight'} | 文章归档`)
+const pageTitle = computed(() => `${String(config.value.site?.title || '').trim() || siteTitle.value} | 文章归档`)
+const pageDescription = computed(() => `${siteDescription.value} 按时间轴浏览博客归档与历史文章。`)
+
+useSeoMeta({
+  title: () => pageTitle.value,
+  ogTitle: () => pageTitle.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
+  ogType: 'website',
+  ogSiteName: () => siteName.value,
+  ogUrl: () => canonicalUrl.value,
+  twitterTitle: () => pageTitle.value,
+  twitterDescription: () => pageDescription.value
 })
 
-const archiveSort = ref('desc')
+useHead(() => ({
+  link: [
+    { rel: 'canonical', href: canonicalUrl.value }
+  ]
+}))
+
+const archiveSort = ref<'desc' | 'asc'>('desc')
 const density = ref(2)
 
-// 博主年龄
 const authorAge = computed(() => {
   const birthYear = config.value.author?.birthYear
   if (!birthYear) return null
@@ -92,7 +110,7 @@ const sortedYears = computed(() => {
     : years.sort((a, b) => parseInt(a) - parseInt(b))
 })
 
-const sortedYearPosts = (year) => {
+const sortedYearPosts = (year: string) => {
   const yearPosts = [...(postsByYear.value[year] || [])]
   return archiveSort.value === 'desc'
     ? yearPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -101,17 +119,71 @@ const sortedYearPosts = (year) => {
 
 const totalWords = computed(() => posts.value.reduce((sum, p) => sum + (p.wordCount || 0), 0))
 
-const formatWordCount = (count) => {
-  if (count >= 10000) return (count / 10000).toFixed(2) + '万字'
-  return count + '字'
+const formatWordCount = (count: number) => {
+  if (count >= 10000) return `${(count / 10000).toFixed(2)}万字`
+  return `${count}字`
 }
 
-const formatShortDate = (dateStr) => {
-  const parts = dateStr.split('-')
-  return parts[1] + '/' + (parts[2] || '').split(' ')[0]
+const formatShortDate = (dateStr: string) => {
+  const date = new Date(dateStr)
+  if (Number.isNaN(date.getTime())) return '--/--'
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${month}/${day}`
 }
 
 const toggleSort = () => {
   archiveSort.value = archiveSort.value === 'desc' ? 'asc' : 'desc'
 }
 </script>
+
+<style scoped>
+@media (max-width: 768px) {
+  .archive-header-controls {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .archive-density {
+    margin-left: auto;
+  }
+
+  .archive-link {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .archive-header-stats {
+    gap: 4px;
+  }
+
+  .archive-header-stats .header-stat {
+    font-size: 0.74rem;
+  }
+
+  .archive-sort-btn {
+    padding: 7px 10px;
+    font-size: 0.78rem;
+  }
+
+  .archive-density .density-label {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .archive-header-controls {
+    align-items: flex-start;
+  }
+
+  .archive-density {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+</style>

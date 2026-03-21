@@ -2,30 +2,11 @@
   <aside class="sidebar-right">
     <ClientOnly>
     <!-- 公告区域 -->
-    <div v-if="showAnnouncement && visibleAnnouncements.length > 0" class="announcement-wrapper">
-      <div class="announcement-section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-        </svg>
-        公告
-      </div>
-      <div class="announcement-list">
-        <div
-          v-for="ann in visibleAnnouncements"
-          :key="ann.annId"
-          class="announcement-item"
-          :class="'type-' + (ann.type || 'info')"
-        >
-          <span class="announcement-type-icon" v-html="getAnnouncementIcon(ann.type || 'info')"></span>
-          <div class="announcement-content-text" v-html="parseMarkdown(ann.content)"></div>
-          <div class="announcement-close-btn" title="关闭" @click="closeAnnouncement(ann.annId)">×</div>
-        </div>
-      </div>
-    </div>
+    <!-- 公告区域 -->
+    <TheAnnouncement v-if="showAnnouncement" />
 
     <!-- 站点统计 -->
-    <div v-if="showStats" class="glass-card widget-card stats-card">
+    <div v-if="showStats" class="widget-card stats-card">
       <h4 class="widget-title">站点统计</h4>
       <div class="stats-grid">
         <div class="stat-item">
@@ -71,7 +52,7 @@
     </div>
 
     <!-- 站点信息 -->
-    <div v-if="showSiteInfo" class="glass-card widget-card">
+    <div v-if="showSiteInfo" class="widget-card">
       <h4 class="widget-title">站点信息</h4>
       <div class="site-info-list">
         <div v-for="info in siteInfoList" :key="info.label" class="info-item">
@@ -82,7 +63,7 @@
     </div>
 
     <!-- 社交 -->
-    <div v-if="showSocial && config.author.socials && config.author.socials.length > 0" class="glass-card widget-card">
+    <div v-if="showSocial && config.author.socials && config.author.socials.length > 0" class="widget-card">
       <h4 class="widget-title">社交</h4>
       <div class="social-cards">
         <a
@@ -107,51 +88,47 @@
     </div>
 
     <!-- 博客信息卡片 (友链页) -->
-    <div v-if="showBlogInfo" class="glass-card widget-card blog-info-widget">
+    <div v-if="showBlogInfo" class="widget-card blog-info-widget">
       <h4 class="widget-title">我的博客信息</h4>
-      <div class="bi-header">
-        <div class="bi-avatar">
-          <img :src="config.author?.avatar || config.site?.logo || ''" :alt="config.author?.name" @error="(e) => e.target.style.display='none'">
+      <div class="profile-preview">
+        <div class="profile-preview-header">
+          <img
+            :src="config.author?.avatar || config.site?.logo || ''"
+            :alt="config.author?.name || '博主'"
+            class="profile-preview-avatar"
+            @error="(e) => e.target.style.display='none'"
+          >
+          <div>
+            <div class="profile-preview-name">{{ config.author?.name || '博主' }}</div>
+            <div class="profile-preview-slogan">{{ config.author?.bio || '介绍文字' }}</div>
+          </div>
         </div>
-        <div class="bi-title-area">
-          <span class="bi-name">{{ config.author?.name || '博主' }}</span>
-          <span v-if="config.author?.bio" class="bi-slogan">{{ config.author.bio }}</span>
-        </div>
-      </div>
-      <div class="bi-fields">
-        <div v-if="config.author?.name" class="bi-field">
-          <span class="bi-label">博主</span>
-          <span class="bi-value">{{ config.author.name }}</span>
-          <button class="bi-copy" @click="copyText(config.author.name)" title="复制">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          </button>
-        </div>
-        <div v-if="config.author?.bio" class="bi-field">
-          <span class="bi-label">介绍</span>
-          <span class="bi-value">{{ config.author.bio }}</span>
-          <button class="bi-copy" @click="copyText(config.author.bio)" title="复制">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          </button>
-        </div>
-        <div v-if="config.author?.website" class="bi-field">
-          <span class="bi-label">网址</span>
-          <span class="bi-value bi-mono">{{ config.author.website }}</span>
-          <button class="bi-copy" @click="copyText(config.author.website)" title="复制">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          </button>
-        </div>
-        <div v-if="config.author?.avatar" class="bi-field">
-          <span class="bi-label">头像</span>
-          <span class="bi-value bi-mono">{{ config.author.avatar }}</span>
-          <button class="bi-copy" @click="copyText(config.author.avatar)" title="复制">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          </button>
+        <div class="profile-preview-fields">
+          <div v-for="field in blogInfoFields" :key="field.key" class="profile-pf">
+            <span class="profile-pf-label">{{ field.label }}</span>
+            <span class="profile-pf-value" :class="{ 'profile-pf-mono': field.mono }">{{ field.display }}</span>
+            <button
+              type="button"
+              class="profile-pf-copy"
+              :title="copiedFieldKey === field.key ? '已复制' : `复制${field.label}`"
+              :aria-label="`复制${field.label}`"
+              @click="copyBlogField(field)"
+            >
+              <svg v-if="copiedFieldKey === field.key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12.5l5.5 5.5L20 7"/>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+                <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- 更新日志 (归档页) -->
-    <div v-if="showLog" id="log-card" class="glass-card widget-card fade-in">
+    <div v-if="showLog" id="log-card" class="widget-card fade-in">
       <div class="log-header">
         <h4 class="widget-title">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -185,7 +162,7 @@
     </div>
 
     <!-- 文章目录 -->
-    <div v-if="showToc && tocItems.length > 0" id="toc-card" class="glass-card widget-card toc-card">
+    <div v-if="showToc && tocItems.length > 0" id="toc-card" class="widget-card toc-card">
       <h4 class="widget-title">
         <span>文章目录</span>
         <div class="toc-header-actions">
@@ -248,48 +225,61 @@ const props = defineProps({
 
 const { config, getSocialIcon } = useSiteConfig()
 const { posts } = usePosts()
-const { parse: parseMarkdown } = useMarkdown()
+const { toast } = useToast()
 
-// Toast 图标
-const toastIcons = {
-  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-  error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-  warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
-};
+const copiedFieldKey = ref('')
+let copiedFieldTimer = null
 
-// Toast 提示函数（与前台评论Toast保持一致）
-const showCommentToast = (() => {
-  let toastTimer = null
+const normalizeText = (value) => String(value ?? '').trim()
 
-  return (message, type = 'info') => {
-    if (typeof document === 'undefined') return
-    let toast = document.getElementById('comment-toast')
-    if (!toast) {
-      toast = document.createElement('div')
-      toast.id = 'comment-toast'
-      toast.className = 'comment-toast'
-      document.body.appendChild(toast)
+const blogInfoFields = computed(() => {
+  const author = config.value.author || {}
+  return [
+    { key: 'author', label: '博主', raw: author.name, display: normalizeText(author.name) || '-', mono: false },
+    { key: 'bio', label: '介绍', raw: author.bio, display: normalizeText(author.bio) || '-', mono: false },
+    { key: 'websiteName', label: '网站', raw: author.websiteName, display: normalizeText(author.websiteName) || '-', mono: false },
+    { key: 'website', label: '网址', raw: author.website, display: normalizeText(author.website) || '-', mono: true },
+    { key: 'avatar', label: '头像', raw: author.avatar, display: normalizeText(author.avatar) || '-', mono: true }
+  ]
+})
+
+const fallbackCopy = async (text) => {
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.top = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+  const success = document.execCommand('copy')
+  document.body.removeChild(textarea)
+  return success
+}
+
+const copyBlogField = async (field) => {
+  const text = normalizeText(field?.raw)
+  if (!text) {
+    toast(`${field?.label || '该项'}暂无可复制内容`, 'warning', 1600)
+    return
+  }
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      const copied = await fallbackCopy(text)
+      if (!copied) throw new Error('copy_failed')
     }
 
-    toast.classList.remove('show')
-    toast.className = `comment-toast comment-toast-${type}`
-    const icon = toastIcons[type] || toastIcons.info
-    toast.innerHTML = `<div class="comment-toast-icon">${icon}</div><div class="comment-toast-content">${message}</div>`
-    requestAnimationFrame(() => toast.classList.add('show'))
-
-    if (toastTimer) clearTimeout(toastTimer)
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000)
-  }
-})()
-
-// 复制文本
-const copyText = async (text) => {
-  try {
-    await navigator.clipboard.writeText(text)
-    showCommentToast('复制成功', 'success')
+    copiedFieldKey.value = field.key
+    if (copiedFieldTimer) clearTimeout(copiedFieldTimer)
+    copiedFieldTimer = setTimeout(() => {
+      copiedFieldKey.value = ''
+      copiedFieldTimer = null
+    }, 1200)
+    toast(`已复制${field.label}`, 'success', 1200)
   } catch {
-    showCommentToast('复制失败', 'error')
+    toast('复制失败，请手动复制', 'error')
   }
 }
 
@@ -305,15 +295,18 @@ const runtimeDays = computed(() => {
 const lastUpdate = computed(() => {
   if (posts.value.length === 0) return '-'
   const latestPost = posts.value.reduce((latest, post) => {
-    return new Date(post.date) > new Date(latest.date) ? post : latest
+    const latestDate = new Date(latest.lastModified || latest.date)
+    const postDate = new Date(post.lastModified || post.date)
+    return postDate > latestDate ? post : latest
   })
-  const updateDate = new Date(latestPost.date)
+  const updateDate = new Date(latestPost.lastModified || latestPost.date)
   const diffMs = Date.now() - updateDate.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
+  const diffSeconds = Math.floor(diffMs / 1000)
 
-  if (diffMins < 60) return `${diffMins}分钟前`
-  if (diffMins < 1440) return `${Math.floor(diffMins / 60)}小时前`
-  if (diffMins < 10080) return `${Math.floor(diffMins / 1440)}天前`
+  if (diffSeconds < 60) return `${Math.max(1, diffSeconds)}秒前`
+  if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}分钟前`
+  if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)}小时前`
+  if (diffSeconds < 604800) return `${Math.floor(diffSeconds / 86400)}天前`
   return `${(updateDate.getMonth() + 1).toString().padStart(2, '0')}-${updateDate.getDate().toString().padStart(2, '0')}`
 })
 
@@ -347,84 +340,6 @@ const sortedLogs = computed(() => {
 })
 
 // 公告
-const closedAnnouncements = ref(new Set())
-
-const simpleHash = (str) => {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash
-  }
-  return Math.abs(hash).toString(36)
-}
-
-const visibleAnnouncements = computed(() => {
-  let announcements = config.value.site?.announcements
-  if (!announcements && config.value.site?.announcement) {
-    announcements = [{ content: config.value.site.announcement, active: true }]
-  }
-  const active = (announcements || []).filter(a => a.active !== false && a.content?.trim())
-  return active
-    .map(ann => ({ ...ann, annId: simpleHash((ann.type || 'info') + ann.content) }))
-    .filter(item => !closedAnnouncements.value.has(item.annId))
-})
-
-const closeAnnouncement = (annId) => {
-  closedAnnouncements.value.add(annId)
-  if (import.meta.client) {
-    localStorage.setItem(`announcement_closed_${annId}`, Date.now().toString())
-  }
-}
-
-onMounted(() => {
-  // 恢复已关闭的公告
-  visibleAnnouncements.value.forEach(ann => {
-    if (localStorage.getItem(`announcement_closed_${ann.annId}`)) {
-      closedAnnouncements.value.add(ann.annId)
-    }
-  })
-  // 初始化公告滚动
-  if (visibleAnnouncements.value.length > 0) initAnnouncementScroll()
-})
-
-const getAnnouncementIcon = (type) => {
-  const icons = {
-    info: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ann-icon-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
-    warning: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ann-icon-warning"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
-    danger: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ann-icon-danger"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
-    success: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ann-icon-success"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
-  }
-  return icons[type] || icons.info
-}
-
-// 公告文字溢出时启用滚动动画
-const initAnnouncementScroll = () => {
-  nextTick(() => {
-    setTimeout(() => {
-      document.querySelectorAll('.announcement-content-text').forEach(container => {
-        const p = container.querySelector('p')
-        if (!p) return
-        const overflow = p.scrollWidth - container.clientWidth
-        if (overflow > 30) {
-          const originalText = p.innerHTML
-          const gap = 80
-          p.innerHTML = originalText + '<span style="display:inline-block;width:' + gap + 'px;"></span>' + originalText
-          container.classList.add('scrolling')
-          const scrollDistance = p.scrollWidth / 2
-          p.style.setProperty('--scroll-distance', '-' + scrollDistance + 'px')
-          const duration = Math.max(10, (scrollDistance / 100) * 3)
-          p.style.animationDuration = duration + 's'
-        }
-      })
-    }, 300)
-  })
-}
-
-watch(() => visibleAnnouncements.value, () => {
-  if (import.meta.client) initAnnouncementScroll()
-}, { immediate: false })
-
 
 const socialCardStyle = (social) => {
   let style = ''
@@ -450,4 +365,11 @@ const scrollToHeading = (id) => {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 }
+
+onUnmounted(() => {
+  if (copiedFieldTimer) {
+    clearTimeout(copiedFieldTimer)
+    copiedFieldTimer = null
+  }
+})
 </script>

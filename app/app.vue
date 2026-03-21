@@ -7,6 +7,9 @@
 <script setup>
 const { fetchConfig } = useSiteConfig()
 
-// 用 useAsyncData 包裹，SSR 失败时也不会白屏
-useAsyncData('siteConfig', async () => { await fetchConfig(); return true })
+// 使用 useAsyncData 包裹，SSR 失败时也不至于白屏
+useAsyncData('siteConfig', async () => {
+  await fetchConfig()
+  return true
+})
 </script>

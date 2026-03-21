@@ -43,8 +43,24 @@
         <div class="footer-info">
           <div class="copyright">{{ config.site.copyright }}</div>
           <div class="beian-info" v-if="hasBeian">
-            <a v-if="config.siteInfo.icp" href="https://beian.miit.gov.cn/" target="_blank" class="beian-link">{{ config.siteInfo.icp }}</a>
-            <span v-if="config.siteInfo.policeBeian && config.siteInfo.policeBeian !== '1'" class="police-beian">{{ config.siteInfo.policeBeian }}</span>
+            <a
+              v-if="config.siteInfo.icp"
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="beian-link"
+            >
+              {{ config.siteInfo.icp }}
+            </a>
+            <a
+              v-if="policeBeianText"
+              :href="policeBeianLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="beian-link police-beian-link"
+            >
+              {{ policeBeianText }}
+            </a>
           </div>
         </div>
       </div>
@@ -58,9 +74,23 @@ defineEmits(['openSearch'])
 const route = useRoute()
 const { config, getNavIcon } = useSiteConfig()
 
+const getPoliceBeianLink = (text) => {
+  const code = (text || '').match(/(\d{6,})/)?.[1]
+  return code
+    ? `https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=${code}`
+    : 'https://www.beian.gov.cn/'
+}
+
+const policeBeianText = computed(() => {
+  const value = config.value.siteInfo?.policeBeian?.trim() || ''
+  return value && value !== '1' ? value : ''
+})
+
+const policeBeianLink = computed(() => getPoliceBeianLink(policeBeianText.value))
+
 const hasBeian = computed(() => {
   return (config.value.siteInfo?.icp && config.value.siteInfo.icp.trim() !== '') ||
-    (config.value.siteInfo?.policeBeian && config.value.siteInfo.policeBeian.trim() !== '' && config.value.siteInfo.policeBeian !== '1')
+    !!policeBeianText.value
 })
 
 const isActive = (path) => {

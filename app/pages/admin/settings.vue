@@ -43,6 +43,11 @@
               建站日志
               <span class="nav-dot" :class="{ visible: dirty.logs }"></span>
             </button>
+            <button class="settings-nav-item" :class="{ active: activeSection === 'mail' }" @click="activeSection = 'mail'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>
+              邮件通知
+              <span class="nav-dot" :class="{ visible: dirty.mail }"></span>
+            </button>
             <button class="settings-nav-item" :class="{ active: activeSection === 'security' }" @click="activeSection = 'security'">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               安全设置
@@ -73,7 +78,7 @@
                     <input type="text" class="s-input" v-model="configData.site.title" @input="markDirty('site')" placeholder="我的博客 | 分享生活与技术">
                   </div>
                   <div class="s-form-group full">
-                    <label class="s-label">站点标语 <span class="s-label-hint">显示在站点名称下方</span></label>
+                    <label class="s-label">站点标语 <span class="s-label-hint">显示在站点名称下</span></label>
                     <input type="text" class="s-input" v-model="configData.site.slogan" @input="markDirty('site')" placeholder="记录生活，分享技术">
                   </div>
                   <div class="s-form-group">
@@ -87,10 +92,6 @@
                   <div class="s-form-group full">
                     <label class="s-label">版权信息</label>
                     <input type="text" class="s-input" v-model="configData.site.copyright" @input="markDirty('site')" placeholder="© 2026 My Blog">
-                  </div>
-                  <div class="s-form-group full">
-                    <label class="s-label">登录页提示 <span class="s-label-hint">显示在登录按钮下方</span></label>
-                    <input type="text" class="s-input" v-model="configData.site.loginHint" @input="markDirty('site')" placeholder="欢迎回来">
                   </div>
                 </div>
               </div>
@@ -117,11 +118,11 @@
                     <input type="text" class="s-input" v-model="configData.siteInfo.domain" @input="markDirty('siteinfo')" placeholder="example.com">
                   </div>
                   <div class="s-form-group">
-                    <label class="s-label">ICP 备案号</label>
+                    <label class="s-label">ICP 备案</label>
                     <input type="text" class="s-input" v-model="configData.siteInfo.icp" @input="markDirty('siteinfo')" placeholder="鄂ICP备xxxxxxxx号">
                   </div>
                   <div class="s-form-group">
-                    <label class="s-label">公安备案号</label>
+                    <label class="s-label">公安备案</label>
                     <input type="text" class="s-input" v-model="configData.siteInfo.policeBeian" @input="markDirty('siteinfo')" placeholder="京公网安备 xxxxxxxx号">
                   </div>
                   <div class="s-form-group">
@@ -145,7 +146,7 @@
             </div>
           </div>
 
-          <!-- ===== 个人资料（作者 + 社交） ===== -->
+          <!-- ===== 个人资料（作者 + 社交）===== -->
           <div v-show="activeSection === 'profile'" class="settings-section active">
             <div class="s-card">
               <div class="s-card-header">
@@ -168,6 +169,7 @@
                   <div class="profile-preview-fields">
                     <div class="profile-pf"><span class="profile-pf-label">博主</span><span class="profile-pf-value">{{ configData.author.name || '-' }}</span></div>
                     <div class="profile-pf"><span class="profile-pf-label">介绍</span><span class="profile-pf-value">{{ configData.author.bio || '-' }}</span></div>
+                    <div class="profile-pf"><span class="profile-pf-label">网站</span><span class="profile-pf-value">{{ configData.author.websiteName || '-' }}</span></div>
                     <div class="profile-pf"><span class="profile-pf-label">网址</span><span class="profile-pf-value profile-pf-mono">{{ configData.author.website || '-' }}</span></div>
                     <div class="profile-pf"><span class="profile-pf-label">头像</span><span class="profile-pf-value profile-pf-mono">{{ configData.author.avatar || '-' }}</span></div>
                   </div>
@@ -175,7 +177,7 @@
                 <!-- 表单 -->
                 <div class="s-form-grid" style="margin-top:16px;">
                   <div class="s-form-group">
-                    <label class="s-label">博主名称 <span class="s-label-hint">对应「博主」字段</span></label>
+                    <label class="s-label">博主名称 <span class="s-label-hint">对应「博主」字</span></label>
                     <input type="text" class="s-input" v-model="configData.author.name" @input="markDirty('profile')" placeholder="管理员">
                   </div>
                   <div class="s-form-group">
@@ -183,15 +185,19 @@
                     <input type="email" class="s-input" v-model="configData.author.email" @input="markDirty('profile')" placeholder="admin@example.com">
                   </div>
                   <div class="s-form-group full">
-                    <label class="s-label">个人简介 <span class="s-label-hint">对应「介绍」字段</span></label>
+                    <label class="s-label">个人简介<span class="s-label-hint">对应「介绍」字段</span></label>
                     <textarea class="s-input" rows="2" v-model="configData.author.bio" @input="markDirty('profile')" placeholder="简单介绍一下自己..."></textarea>
                   </div>
                   <div class="s-form-group">
-                    <label class="s-label">网址 <span class="s-label-hint">对应「网址」字段</span></label>
+                    <label class="s-label">网站名称 <span class="s-label-hint">对应「网站」字</span></label>
+                    <input type="text" class="s-input" v-model="configData.author.websiteName" @input="markDirty('profile')" placeholder="Dawnlight">
+                  </div>
+                  <div class="s-form-group">
+                    <label class="s-label">网址 <span class="s-label-hint">对应「网址」字</span></label>
                     <input type="url" class="s-input" v-model="configData.author.website" @input="markDirty('profile')" placeholder="https://example.com">
                   </div>
                   <div class="s-form-group">
-                    <label class="s-label">头像 URL <span class="s-label-hint">对应「头像」字段</span></label>
+                    <label class="s-label">头像 URL <span class="s-label-hint">对应「头像」字</span></label>
                     <input type="url" class="s-input" v-model="configData.author.avatar" @input="markDirty('profile')" placeholder="https://example.com/avatar.jpg">
                   </div>
                 </div>
@@ -298,6 +304,124 @@
             </div>
           </div>
 
+          <!-- ===== 邮件通知 ===== -->
+          <div v-show="activeSection === 'mail'" class="settings-section active">
+            <div class="s-card">
+              <div class="s-card-header">
+                <div class="s-card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>
+                  邮件通知
+                </div>
+              </div>
+              <div class="s-card-body">
+                <div class="mail-status-card">
+                  <div class="mail-status-main">
+                    <div class="mail-status-title">评论通知与回复通知</div>
+                    <div class="mail-status-desc">默认按 QQ 邮箱场景配置。通常只需要填写通知收件邮箱、发件邮箱和授权码，站点地址会自动读取。</div>
+                  </div>
+                  <div class="mail-status-actions">
+                    <button class="a-btn a-btn-sm" @click="applyMailPreset">套用 QQ 默认参数</button>
+                    <label class="mail-checkbox">
+                      <input type="checkbox" v-model="mailData.enabled" @change="markDirty('mail')">
+                      <span>启用邮件通知</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="s-form-grid mail-primary-grid">
+                  <div class="s-form-group full">
+                    <label class="s-label">通知收件邮箱 <span class="s-label-hint">接收新评论提醒，测试发信留空时默认发到这里</span></label>
+                    <input type="email" class="s-input" v-model="mailData.notifyTo" @input="markDirty('mail')" placeholder="notify@example.com">
+                  </div>
+                  <div class="s-form-group">
+                    <label class="s-label">发件邮箱账号</label>
+                    <input type="email" class="s-input" v-model="mailData.user" @input="markDirty('mail')" @blur="syncMailFromWithUser" placeholder="your@qq.com">
+                  </div>
+                  <div class="s-form-group">
+                    <label class="s-label">SMTP 授权码 <span class="s-label-hint">{{ mailPasswordHint }}</span></label>
+                    <input type="password" class="s-input" v-model="mailData.pass" @input="markDirty('mail')" :placeholder="mailPasswordPlaceholder">
+                  </div>
+                </div>
+
+                <div class="mail-auto-site-strip" :class="{ empty: !mailResolvedSiteUrl }">
+                  <span class="mail-auto-site-label">{{ mailData.siteUrl.trim() ? '站点地址覆盖' : '站点地址自动读取' }}</span>
+                  <span class="mail-auto-site-value">{{ mailResolvedSiteUrl || '未检测到，可先在个人资料的“网址”或站点信息的“域名”中补充' }}</span>
+                </div>
+
+                <div class="mail-note-strip">
+                  QQ 邮箱需要先在“账号与安全”里开启 SMTP 并生成授权码。授权码不是 QQ 登录密码。
+                </div>
+
+                <details class="mail-advanced-panel">
+                  <summary class="mail-advanced-summary">
+                    <span>高级 SMTP 设置</span>
+                    <span class="mail-advanced-hint">只有自定义服务器或需要微调参数时再展开</span>
+                  </summary>
+                  <div class="mail-advanced-body">
+                    <div class="s-form-grid">
+                      <div class="s-form-group">
+                        <label class="s-label">服务商</label>
+                        <input type="text" class="s-input" v-model="mailData.provider" @input="markDirty('mail')" placeholder="qq">
+                      </div>
+                      <div class="s-form-group">
+                        <label class="s-label">SMTP 主机</label>
+                        <input type="text" class="s-input" v-model="mailData.host" @input="markDirty('mail')" placeholder="smtp.qq.com">
+                      </div>
+                      <div class="s-form-group">
+                        <label class="s-label">SMTP 端口</label>
+                        <input type="number" class="s-input" v-model.number="mailData.port" @input="markDirty('mail')" min="1" max="65535" placeholder="465">
+                      </div>
+                      <div class="s-form-group">
+                        <label class="s-label">安全连接</label>
+                        <label class="mail-checkbox mail-checkbox-inline">
+                          <input type="checkbox" v-model="mailData.secure" @change="markDirty('mail')">
+                          <span>使用 SSL/TLS（QQ 邮箱推荐 465）</span>
+                        </label>
+                      </div>
+                      <div class="s-form-group full">
+                        <label class="s-label">发件人 <span class="s-label-hint">留空时自动使用站点名 + 发件邮箱</span></label>
+                        <input
+                          type="text"
+                          class="s-input"
+                          v-model="mailData.from"
+                          @input="markDirty('mail')"
+                          :placeholder="buildMailFromValue(mailData.user) || 'Dawnlight <your@qq.com>'"
+                        >
+                      </div>
+                      <div class="s-form-group full">
+                        <label class="s-label">站点地址覆盖（可选） <span class="s-label-hint">留空时自动读取个人资料网址或站点域名</span></label>
+                        <input type="url" class="s-input" v-model="mailData.siteUrl" @input="markDirty('mail')" :placeholder="mailSiteUrlPlaceholder">
+                      </div>
+                    </div>
+
+                    <div class="mail-advanced-note">回复评论时，系统仍会尝试发送到 <code>评论QQ号@qq.com</code>；站点地址留空时会自动读取公开站点配置。</div>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <div class="s-card">
+              <div class="s-card-header">
+                <div class="s-card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                  测试发信
+                </div>
+                <span class="mail-test-tip">保存后可直接验证通知链路</span>
+              </div>
+              <div class="s-card-body">
+                <div class="mail-test-row">
+                  <input type="email" class="s-input" v-model="mailTestTo" placeholder="留空则发到通知收件邮箱">
+                  <button class="a-btn a-btn-primary" @click="sendMailTest" :disabled="mailTesting">
+                    {{ mailTesting ? '发送中...' : '发送测试邮件' }}
+                  </button>
+                </div>
+                <div class="mail-test-hint">
+                  当前表单有未保存更改时，测试前会先自动保存。
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- ===== 安全设置 ===== -->
           <div v-show="activeSection === 'security'" class="settings-section active">
             <div class="s-card">
@@ -314,7 +438,7 @@
                   </div>
                   <div class="security-content">
                     <div class="security-title">修改管理密码</div>
-                    <div class="security-desc">定期更换密码可以提高账户安全性。新密码长度至少 6 位。</div>
+                    <div class="security-desc">定期更换密码可以提高账户安全性。新密码长度至少 6 位</div>
                     <div class="security-form">
                       <input type="password" class="s-input" v-model="pwd.current" placeholder="当前密码" @input="markDirty('security')">
                       <input type="password" class="s-input" v-model="pwd.next" placeholder="新密码" @input="markDirty('security')">
@@ -358,7 +482,7 @@
             </div>
             <!-- 预设平台快捷选择 -->
             <div class="social-presets">
-              <span class="social-presets-label">快捷选择：</span>
+              <span class="social-presets-label">快捷选择</span>
               <button v-for="p in socialPresets" :key="p.name" class="social-preset-btn" :class="{ active: socialForm.name === p.name }" @click="applySocialPreset(p)">
                 <span v-html="getSocialIcon(p.name)"></span>
                 {{ p.label }}
@@ -366,7 +490,7 @@
             </div>
             <div class="social-modal-grid">
               <div class="form-group">
-                <label>平台名称 <span class="form-hint">前台显示的标题</span></label>
+                <label>平台名称 <span class="form-hint">前台显示的标</span></label>
                 <input class="s-input" v-model="socialForm.name" placeholder="GitHub / Bilibili / Email">
               </div>
               <div class="form-group">
@@ -374,11 +498,11 @@
                 <input class="s-input" v-model="socialForm.url" placeholder="https://... 或 mailto:...">
               </div>
               <div class="form-group">
-                <label>描述（可选）<span class="form-hint">显示在名称下方</span></label>
+                <label>描述（可选）<span class="form-hint">显示在名称下</span></label>
                 <input class="s-input" v-model="socialForm.description" placeholder="一句话描述">
               </div>
               <div class="form-group">
-                <label>主题颜色（可选）<span class="form-hint">卡片背景色</span></label>
+                <label>主题颜色（可选）<span class="form-hint">卡片背景</span></label>
                 <div style="display:flex;gap:8px;align-items:center;">
                   <input class="s-input" v-model="socialForm.color" placeholder="#3b82f6" style="flex:1;">
                   <input v-if="socialForm.color" type="color" :value="socialForm.color" @input="socialForm.color = $event.target.value" style="width:32px;height:32px;border:1px solid var(--a-border);border-radius:6px;padding:2px;cursor:pointer;">
@@ -422,6 +546,7 @@ const dirty = reactive({
   profile: false,
   announcements: false,
   logs: false,
+  mail: false,
   security: false
 })
 
@@ -429,13 +554,110 @@ const markDirty = (key) => {
   dirty[key] = true
 }
 
+const publicDirtyKeys = ['site', 'siteinfo', 'profile', 'announcements', 'logs']
 const fullConfig = ref({})
 
 const configData = reactive({
-  site: { name: '', title: '', slogan: '', logo: '', favicon: '', copyright: '', announcements: [], loginHint: '' },
-  author: { name: '', bio: '', email: '', socials: [], birthYear: undefined, avatar: '', website: '' },
+  site: { name: '', title: '', slogan: '', logo: '', favicon: '', copyright: '', announcements: [] },
+  author: { name: '', bio: '', email: '', socials: [], birthYear: undefined, avatar: '', website: '', websiteName: '' },
   siteInfo: { startTime: '', icp: '', policeBeian: '', imageStorage: '', domain: '', softwareLicense: '', articleLicense: '', logs: [] }
 })
+
+const mailData = reactive({
+  enabled: false,
+  provider: 'qq',
+  host: 'smtp.qq.com',
+  port: 465,
+  secure: true,
+  user: '',
+  pass: '',
+  from: '',
+  notifyTo: '',
+  siteUrl: '',
+  hasPassword: false
+})
+const mailTestTo = ref('')
+const mailTesting = ref(false)
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const isValidHttpUrlInput = (value) => {
+  try {
+    const url = new URL(String(value || '').trim())
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+const mailPasswordHint = computed(() => {
+  return mailData.hasPassword ? '已保存，留空则保持原值' : '首次配置必填'
+})
+
+const mailPasswordPlaceholder = computed(() => {
+  return mailData.hasPassword ? '已配置 SMTP 授权码，留空不覆盖' : '请输入 QQ 邮箱 SMTP 授权码'
+})
+
+const normalizeSuggestedHttpUrl = (value) => {
+  const raw = String(value || '').trim().replace(/\/+$/g, '')
+  if (!raw) return ''
+  if (isValidHttpUrlInput(raw)) return raw
+
+  const withProtocol = `https://${raw}`
+  return isValidHttpUrlInput(withProtocol) ? withProtocol.replace(/\/+$/g, '') : ''
+}
+
+const resolveSuggestedMailSiteUrl = () => {
+  return (
+    normalizeSuggestedHttpUrl(configData.author.website)
+    || normalizeSuggestedHttpUrl(configData.siteInfo.domain)
+  )
+}
+
+const mailSiteUrlPlaceholder = computed(() => {
+  return resolveSuggestedMailSiteUrl() || 'https://example.com'
+})
+
+const mailResolvedSiteUrl = computed(() => {
+  return String(mailData.siteUrl || '').trim() || resolveSuggestedMailSiteUrl()
+})
+
+const buildMailFromValue = (email) => {
+  const mailbox = String(email || '').trim()
+  if (!mailbox) return ''
+  const display = String(configData.site.name || configData.author.name || 'Dawnlight').trim() || 'Dawnlight'
+  return `${display} <${mailbox}>`
+}
+
+const isValidEmailInput = (value) => {
+  return EMAIL_RE.test(String(value || '').trim())
+}
+
+const extractMailboxValue = (value) => {
+  const raw = String(value || '').trim()
+  const matched = raw.match(/<([^>]+)>/)
+  return String(matched?.[1] || raw).trim()
+}
+
+const syncMailFromWithUser = () => {
+  if (!mailData.user.trim()) return
+  if (!mailData.from.trim()) {
+    mailData.from = buildMailFromValue(mailData.user)
+    markDirty('mail')
+  }
+}
+
+const applyMailPreset = () => {
+  Object.assign(mailData, {
+    provider: 'qq',
+    host: 'smtp.qq.com',
+    port: 465,
+    secure: true
+  })
+  if (mailData.user.trim() && !mailData.from.trim()) {
+    mailData.from = buildMailFromValue(mailData.user)
+  }
+  markDirty('mail')
+}
 
 const { getSocialIcon } = useSiteConfig()
 const socials = computed(() => configData.author.socials || [])
@@ -469,7 +691,7 @@ const socialPresets = [
 
 const applySocialPreset = (preset) => {
   socialForm.name = preset.name
-  socialForm.icon = '' // 清空自定义图标，让 getSocialIcon 自动生成
+  socialForm.icon = '' // 清空自定义图标，由 getSocialIcon 自动生成
 }
 
 const loadConfig = async () => {
@@ -485,36 +707,152 @@ const loadConfig = async () => {
       })
     }
   } catch {}
+
+  try {
+    const data = await authFetch('/api/admin/mail')
+    if (data?.success && data.data) {
+      Object.assign(mailData, {
+        enabled: Boolean(data.data.enabled),
+        provider: data.data.provider || 'qq',
+        host: data.data.host || 'smtp.qq.com',
+        port: Number(data.data.port || 465),
+        secure: Boolean(data.data.secure),
+        user: data.data.user || '',
+        pass: '',
+        from: data.data.from || '',
+        notifyTo: data.data.notifyTo || '',
+        siteUrl: data.data.siteUrl || '',
+        hasPassword: Boolean(data.data.hasPassword)
+      })
+    }
+  } catch {}
+
   loading.value = false
 }
 
-const saveConfig = async () => {
-  saving.value = true
-  try {
-    // 保留其他未在此页编辑的配置字段，避免覆盖写丢失（服务端也会做深合并）
-    const body = {
-      ...fullConfig.value,
-      site: { ...(fullConfig.value.site || {}), ...configData.site },
-      author: { ...(fullConfig.value.author || {}), ...configData.author },
-      siteInfo: { ...(fullConfig.value.siteInfo || {}), ...configData.siteInfo }
-    }
-    // Bot 功能全删：不再写入 bot 字段
-    if (body.bot) delete body.bot
+const buildMailPayload = () => {
+  const user = String(mailData.user || '').trim()
+  const from = String(mailData.from || '').trim() || buildMailFromValue(user)
+  const siteUrl = String(mailData.siteUrl || '').trim()
 
-    await authFetch('/api/config', {
-      method: 'PUT',
-      body
-    })
+  return {
+    enabled: mailData.enabled,
+    provider: String(mailData.provider || '').trim() || 'qq',
+    host: String(mailData.host || '').trim(),
+    port: Number(mailData.port || 0),
+    secure: Boolean(mailData.secure),
+    user,
+    pass: String(mailData.pass || '').trim(),
+    from,
+    notifyTo: String(mailData.notifyTo || '').trim(),
+    siteUrl
+  }
+}
+
+const validateMailPayload = () => {
+  const payload = buildMailPayload()
+  const errors = []
+
+  if (!payload.host) errors.push('SMTP 主机不能为空')
+  if (!Number.isFinite(payload.port) || payload.port < 1 || payload.port > 65535) errors.push('SMTP 端口不合法')
+  if (payload.user && !isValidEmailInput(payload.user)) errors.push('发件邮箱账号格式不正确')
+  if (payload.from && !isValidEmailInput(extractMailboxValue(payload.from))) errors.push('发件人地址格式不正确')
+  if (payload.notifyTo && !isValidEmailInput(payload.notifyTo)) errors.push('通知收件邮箱格式不正确')
+  if (payload.siteUrl && !isValidHttpUrlInput(payload.siteUrl)) errors.push('站点地址必须为 http 或 https 链接')
+
+  if (payload.enabled) {
+    if (!payload.user) errors.push('启用邮件通知时必须填写发件邮箱账号')
+    if (!payload.from) errors.push('启用邮件通知时必须填写发件人地址')
+    if (!payload.pass && !mailData.hasPassword) errors.push('启用邮件通知时必须填写 SMTP 授权码')
+  }
+
+  if (errors.length > 0) {
+    const error = new Error(errors[0])
+    error.data = { message: errors[0], details: { errors } }
+    throw error
+  }
+
+  return payload
+}
+
+const savePublicConfigSettings = async () => {
+  const body = {
+    ...fullConfig.value,
+    site: { ...(fullConfig.value.site || {}), ...configData.site },
+    author: { ...(fullConfig.value.author || {}), ...configData.author },
+    siteInfo: { ...(fullConfig.value.siteInfo || {}), ...configData.siteInfo }
+  }
+  if (body.bot) delete body.bot
+
+  await authFetch('/api/config', {
+    method: 'PUT',
+    body
+  })
+
+  fullConfig.value = body
+  publicDirtyKeys.forEach((key) => { dirty[key] = false })
+}
+
+const saveMailConfigSettings = async () => {
+  const payload = validateMailPayload()
+  const res = await authFetch('/api/admin/mail', {
+    method: 'PUT',
+    body: payload
+  })
+
+  if (res?.success && res.data) {
+    mailData.from = res.data.from || ''
+    mailData.notifyTo = res.data.notifyTo || ''
+    mailData.siteUrl = res.data.siteUrl || payload.siteUrl
+    mailData.hasPassword = Boolean(res.data.hasPassword)
+    mailData.pass = ''
+    dirty.mail = false
+  }
+}
+
+const saveConfig = async () => {
+  const shouldSavePublic = publicDirtyKeys.some((key) => dirty[key])
+  const shouldSaveMail = dirty.mail
+  if (!shouldSavePublic && !shouldSaveMail) {
+    ui.toast('没有需要保存的更改', 'warning')
+    return
+  }
+
+  saving.value = true
+  let publicError = ''
+  let mailError = ''
+
+  try {
+    if (shouldSavePublic) {
+      await savePublicConfigSettings()
+    }
+  } catch (e) {
+    publicError = e?.data?.message || e?.message || '站点设置保存失败'
+  }
+
+  try {
+    if (shouldSaveMail) {
+      await saveMailConfigSettings()
+    }
+  } catch (e) {
+    mailError = e?.data?.message || e?.message || '邮件配置保存失败'
+  }
+
+  if (!publicError && !mailError) {
     ui.toast('保存成功', 'success')
-    Object.keys(dirty).forEach((k) => { dirty[k] = false })
-    // 刷新 fullConfig，避免后续保存丢字段
-    fullConfig.value = body
-  } catch {}
+  } else if (!publicError && mailError) {
+    ui.toast(`公开配置已保存，${mailError}`, 'warning')
+  } else if (publicError && !mailError) {
+    ui.toast(`邮件配置已保存，${publicError}`, 'warning')
+  } else {
+    ui.toast(publicError || mailError || '保存失败', 'error')
+  }
+
   saving.value = false
 }
 
 const resetConfig = async () => {
-  const ok = await ui.confirm('确定要重置为默认配置？', { danger: true, confirmText: '重置' })
+  const ok = await ui.confirm('确定要重置为默认配置吗？', { danger: true, confirmText: '重置' })
   if (!ok) return
   try {
     await authFetch('/api/config/reset', { method: 'POST' })
@@ -536,14 +874,14 @@ const addLog = () => {
 }
 
 const removeAnnouncement = async (i) => {
-  const ok = await ui.confirm('确定删除这条公告？', { danger: true, confirmText: '删除' })
+  const ok = await ui.confirm('确定删除这条公告吗？', { danger: true, confirmText: '删除' })
   if (!ok) return
   configData.site.announcements.splice(i, 1)
   markDirty('announcements')
 }
 
 const removeLog = async (i) => {
-  const ok = await ui.confirm('确定删除这条日志？', { danger: true, confirmText: '删除' })
+  const ok = await ui.confirm('确定删除这条日志吗？', { danger: true, confirmText: '删除' })
   if (!ok) return
   configData.siteInfo.logs.splice(i, 1)
   markDirty('logs')
@@ -647,8 +985,8 @@ watch(() => pwd.next, (val) => {
   const p = (val || '').length
   pwdStrength.visible = !!val
   if (p < 6) { pwdStrength.percent = 20; pwdStrength.text = '太短' }
-  else if (p < 9) { pwdStrength.percent = 45; pwdStrength.text = '弱' }
-  else if (p < 12) { pwdStrength.percent = 70; pwdStrength.text = '中' }
+  else if (p < 9) { pwdStrength.percent = 45; pwdStrength.text = '一般' }
+  else if (p < 12) { pwdStrength.percent = 70; pwdStrength.text = '中等' }
   else { pwdStrength.percent = 90; pwdStrength.text = '强' }
 })
 
@@ -682,6 +1020,41 @@ const changePassword = async () => {
     ui.toast(e?.data?.message || e?.message || '修改失败', 'error')
   }
   pwdLoading.value = false
+}
+
+const sendMailTest = async () => {
+  if (mailTesting.value) return
+  mailTesting.value = true
+  try {
+    const preferredTo = String(mailTestTo.value || '').trim()
+    const fallbackTo = String(mailData.notifyTo || '').trim() || String(configData.author.email || '').trim()
+    const target = preferredTo || fallbackTo
+
+    if (!target) {
+      throw new Error('请先填写测试收件邮箱或通知收件邮箱')
+    }
+    if (!isValidEmailInput(target)) {
+      throw new Error('测试收件邮箱格式不正确')
+    }
+
+    if (dirty.mail) {
+      await saveMailConfigSettings()
+      ui.toast('邮件配置已保存，开始发送测试邮件', 'success')
+    }
+
+    const res = await authFetch('/api/admin/mail/test', {
+      method: 'POST',
+      body: { to: preferredTo }
+    })
+    if (res?.success) {
+      ui.toast(`测试邮件已发送至 ${res.data?.to || mailTestTo.value || '通知收件邮箱'}`, 'success')
+    } else {
+      ui.toast(res?.message || '测试邮件发送失败', 'error')
+    }
+  } catch (e) {
+    ui.toast(e?.data?.message || e?.message || '测试邮件发送失败', 'error')
+  }
+  mailTesting.value = false
 }
 
 onMounted(loadConfig)
@@ -721,6 +1094,34 @@ onMounted(loadConfig)
 .s-input:focus { outline:none; border-color: var(--a-primary); box-shadow: 0 0 0 3px rgba(var(--a-primary-rgb), 0.1); background: rgba(255,255,255,.7); }
 [data-theme="dark"] .s-input:focus { background: rgba(255,255,255,.08); }
 textarea.s-input { resize: vertical; min-height: 90px; }
+
+/* 邮件通知 */
+.mail-status-card { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:16px; border:1px solid var(--a-border); border-radius:12px; background:rgba(var(--a-primary-rgb),.04); }
+.mail-status-main { min-width:0; flex:1; }
+.mail-status-title { font-size:14px; font-weight:700; color:var(--a-text); }
+.mail-status-desc { margin-top:4px; font-size:12px; color:var(--a-text-3); line-height:1.6; }
+.mail-status-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap:wrap; flex-shrink:0; }
+.mail-primary-grid { margin-top:16px; }
+.mail-auto-site-strip { margin-top:16px; padding:12px 14px; border-radius:12px; border:1px solid var(--a-border); background:rgba(var(--a-primary-rgb),.04); display:flex; gap:10px; align-items:flex-start; }
+.mail-auto-site-label { flex-shrink:0; font-size:12px; font-weight:600; color:var(--a-text); }
+.mail-auto-site-value { min-width:0; font-size:12px; line-height:1.7; color:var(--a-text-2); word-break:break-all; }
+.mail-auto-site-strip.empty .mail-auto-site-value { color:var(--a-text-3); }
+.mail-checkbox { display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--a-text); cursor:pointer; flex-shrink:0; }
+.mail-checkbox-inline { min-height:42px; padding:0 2px; }
+.mail-checkbox input { accent-color: var(--a-primary); }
+.mail-note-strip { margin-top:16px; padding:12px 14px; border-radius:12px; font-size:12px; color:var(--a-text-3); line-height:1.7; background:var(--a-bg); border:1px solid var(--a-border); }
+.mail-advanced-panel { margin-top:16px; border:1px solid var(--a-border); border-radius:12px; background:var(--a-bg); overflow:hidden; }
+.mail-advanced-summary { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; cursor:pointer; user-select:none; list-style:none; font-size:13px; font-weight:600; color:var(--a-text); }
+.mail-advanced-summary::-webkit-details-marker { display:none; }
+.mail-advanced-summary::after { content:'展开'; font-size:12px; font-weight:400; color:var(--a-text-3); }
+.mail-advanced-panel[open] .mail-advanced-summary::after { content:'收起'; }
+.mail-advanced-hint { font-size:12px; color:var(--a-text-3); font-weight:400; }
+.mail-advanced-body { padding:0 16px 16px; border-top:1px solid var(--a-border); }
+.mail-advanced-note { margin-top:14px; font-size:12px; color:var(--a-text-3); line-height:1.6; }
+.mail-test-row { display:flex; gap:12px; align-items:center; }
+.mail-test-row .s-input { flex:1; }
+.mail-test-tip { font-size:12px; color:var(--a-text-3); }
+.mail-test-hint { margin-top:10px; font-size:12px; color:var(--a-text-3); line-height:1.6; }
 
 /* 博客信息卡片预览 */
 .profile-preview { padding:16px; border:1px solid var(--a-border); border-radius:12px; background:rgba(var(--a-primary-rgb),.02); }
@@ -845,5 +1246,48 @@ textarea.s-input { resize: vertical; min-height: 90px; }
 
 @media (max-width: 860px) {
   .s-form-grid { grid-template-columns: 1fr; }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  /* 社交编辑弹窗：两列改单列 */
+  .social-modal-grid { grid-template-columns: 1fr; }
+
+  .mail-status-card,
+  .mail-test-row,
+  .mail-auto-site-strip { flex-direction: column; align-items: stretch; }
+
+  .mail-status-actions { flex-direction: column; align-items: stretch; }
+  .mail-status-actions .a-btn { width: 100%; }
+  .mail-checkbox { width: 100%; justify-content: flex-start; }
+  .mail-advanced-summary { flex-direction: column; align-items: flex-start; }
+
+  /* 安全设置：密码表单纵向排列 */
+  .security-card { flex-direction: column; gap: 10px; }
+  .security-form { flex-direction: column; align-items: stretch; }
+  .security-form .s-input { width: 100%; }
+  .security-form .a-btn { width: 100%; }
+
+  /* 密码强度条 */
+  .password-strength { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .password-strength-bar { width: 100%; }
+
+  /* 社交卡片网格适配 */
+  .social-grid { grid-template-columns: 1fr !important; }
+
+  /* 弹窗尺寸优化 */
+  .modal-content { max-width: calc(100vw - 24px) !important; max-height: 90vh; margin: 12px; }
+  .social-bg-preview { aspect-ratio: 16/8; }
+}
+
+@media (max-width: 480px) {
+  /* 设置中的公告列表 */
+  .ann-preview-item { font-size: 12px; padding: 8px 10px; }
+
+  /* 弹窗内间距缩减 */
+  .modal-content { padding: 16px !important; }
+  .modal-header h3 { font-size: 16px; }
+  .modal-footer { gap: 6px; }
+  .modal-footer .a-btn { flex: 1; min-width: 0; }
 }
 </style>

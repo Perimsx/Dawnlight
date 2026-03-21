@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <div class="a-topbar">
       <div>
@@ -283,7 +283,9 @@ const loadLogs = async () => {
   try {
     const data = await authFetch('/api/logs')
     if (data.success) logs.value = data.data || []
-  } catch {}
+  } catch {
+    ui.toast('加载日志失败，请稍后重试', 'error')
+  }
   loading.value = false
 }
 
@@ -310,7 +312,9 @@ const clearLogs = async () => {
     await authFetch('/api/logs/clear', { method: 'DELETE' })
     logs.value = []
     ui.toast('已清空', 'success')
-  } catch {}
+  } catch {
+    ui.toast('清空失败，请稍后重试', 'error')
+  }
 }
 
 onMounted(loadLogs)
@@ -321,7 +325,11 @@ onMounted(loadLogs)
 .log-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
 .log-stat-card { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--a-bg-2); border: 1px solid var(--a-border); border-radius: 12px; cursor: pointer; transition: all .2s ease; }
 .log-stat-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.06); }
-.log-stat-card.active { border-color: var(--a-primary); background: rgba(var(--a-primary-rgb),0.04); }
+.log-stat-card.active {
+  border-color: var(--a-border);
+  background: rgba(var(--a-primary-rgb), 0.03);
+  box-shadow: none;
+}
 .log-stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .log-stat-body { min-width: 0; }
 .log-stat-value { font-size: 22px; font-weight: 700; color: var(--a-text); line-height: 1.2; }
@@ -388,6 +396,8 @@ onMounted(loadLogs)
 /* 响应式 */
 @media (max-width: 768px) {
   .log-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .log-search-wrap, .log-filter-select { width: 100%; min-width: 0; }
+  .log-result-count { width: 100%; text-align: right; }
   .log-item-header { flex-wrap: wrap; }
   .log-item-time { margin-left: 0; }
 }

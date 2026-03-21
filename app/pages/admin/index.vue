@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <div class="a-topbar">
         <div>
@@ -30,7 +30,7 @@
         <div class="db-stat-icon" style="background:rgba(52,199,89,0.1);color:#34c759;">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </div>
-        <div class="db-stat-num">{{ formatWordCount(stats.totalWords) }}字</div>
+        <div class="db-stat-num">{{ formatWordCount(stats.totalWords) }} 字</div>
         <div class="db-stat-label">总字数</div>
       </div>
       <div class="db-stat">
@@ -117,7 +117,7 @@
                                 {{ formatDateTime(post.date) }}
                             </td>
                             <td style="color:var(--a-text-3); white-space:nowrap; padding-right:12px; font-size:13px;">
-                                {{ formatWordCount(post.wordCount || 0) }}字
+                                {{ formatWordCount(post.wordCount || 0) }} 字
                             </td>
                         </tr>
                     </tbody>
@@ -135,7 +135,7 @@
                     </div>
                     <div class="dashboard-post-card-meta">
                         <span>{{ formatDate(post.date) }}</span>
-                        <span>{{ formatWordCount(post.wordCount || 0) }}字</span>
+                        <span>{{ formatWordCount(post.wordCount || 0) }} 字</span>
                     </div>
                  </NuxtLink>
              </div>
@@ -153,7 +153,8 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 } from 'chart.js'
 import { Line } from 'vue-chartjs'
 
@@ -164,7 +165,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 )
 
 definePageMeta({
@@ -225,8 +227,7 @@ const formatDateTime = (dateStr) => {
     if (!dateStr) return '--';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return '--';
-    // Simple format YYYY-MM-DD HH:mm:ss
-    return date.toISOString().slice(0, 19).replace('T', ' ');
+    return date.toLocaleString('zh-CN', { hour12: false });
 }
 
 const formatDate = (dateStr) => {
@@ -263,6 +264,7 @@ const calculateStats = (posts) => {
 
         if (post.date) {
             const postDate = new Date(post.date);
+            if (isNaN(postDate.getTime())) return;
             if (postDate.getFullYear() === thisYear) {
                 postsThisYear++;
                 if (postDate.getMonth() === thisMonth) {
@@ -295,6 +297,7 @@ const prepareChart = (posts) => {
     posts.forEach(post => {
         if (post.date) {
             const d = new Date(post.date);
+            if (isNaN(d.getTime())) return;
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
             if (monthlyData.hasOwnProperty(key)) {
                 monthlyData[key]++;
@@ -302,7 +305,7 @@ const prepareChart = (posts) => {
         }
     });
 
-    chartData.labels = Object.keys(monthlyData).map(k => k.split('-')[1] + '月');
+    chartData.labels = Object.keys(monthlyData).map((k) => `${k.split('-')[1]}月`);
     chartData.datasets = [{
         label: '发文数',
         data: Object.values(monthlyData),
@@ -356,6 +359,7 @@ const prepareChart = (posts) => {
 
 .dashboard-post-card-meta {
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     font-size: 12px;
     color: var(--a-text-3);
@@ -387,11 +391,14 @@ const prepareChart = (posts) => {
 }
 
 @media (max-width: 480px) {
-    .dashboard-stats-grid {
+    .db-stats-row {
         grid-template-columns: 1fr 1fr !important;
         gap: 8px !important;
     }
-    .dashboard-stat-value {
+    .db-stat {
+        padding: 12px !important;
+    }
+    .db-stat-num {
         font-size: 16px !important;
     }
 }

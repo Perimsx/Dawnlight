@@ -15,7 +15,6 @@
       </div>
     </div>
 
-    <!-- 搜索与排序工具栏 -->
     <div class="category-toolbar">
       <div class="category-search-bar">
         <input type="text" :placeholder="`在「${decodedTag}」分类中搜索...`" v-model="searchQuery">
@@ -69,31 +68,61 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const route = useRoute()
 const { config } = useSiteConfig()
 const { getPostsByTag } = usePosts()
+const { siteTitle, siteName, siteDescription, canonicalUrl } = usePageSeo()
 
-const setSidebarConfig = inject('setSidebarConfig', () => {})
+const setSidebarConfig = inject<(config: Record<string, boolean>) => void>('setSidebarConfig', () => {})
 setSidebarConfig({
-  stats: true, siteInfo: false, social: false,
-  announcement: false, log: false, toc: false
+  stats: false,
+  siteInfo: false,
+  social: false,
+  announcement: false,
+  log: true,
+  toc: false
 })
 
-const decodedTag = computed(() => decodeURIComponent(route.params.tag))
-
-useHead({
-  title: computed(() => `${config.value.site?.title || 'Dawnlight'} | ${decodedTag.value}`)
+const decodedTag = computed(() => {
+  const raw = Array.isArray(route.params.tag) ? route.params.tag[0] : route.params.tag
+  const value = String(raw || '')
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
 })
 
-const catSort = ref('desc')
+const pageTitle = computed(() => `${String(config.value.site?.title || '').trim() || siteTitle.value} | ${decodedTag.value}`)
+const pageDescription = computed(() => `${siteDescription.value} 查看分类「${decodedTag.value}」下的全部文章。`)
+
+useSeoMeta({
+  title: () => pageTitle.value,
+  ogTitle: () => pageTitle.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
+  ogType: 'website',
+  ogSiteName: () => siteName.value,
+  ogUrl: () => canonicalUrl.value,
+  twitterTitle: () => pageTitle.value,
+  twitterDescription: () => pageDescription.value
+})
+
+useHead(() => ({
+  link: [
+    { rel: 'canonical', href: canonicalUrl.value }
+  ]
+}))
+
+const catSort = ref<'desc' | 'asc'>('desc')
 const searchQuery = ref('')
 
 const filteredPosts = computed(() => {
   let posts = getPostsByTag(decodedTag.value)
   if (searchQuery.value.trim()) {
     const kw = searchQuery.value.trim().toLowerCase()
-    posts = posts.filter(p => p.title.toLowerCase().includes(kw) || (p.description || '').toLowerCase().includes(kw))
+    posts = posts.filter((p) => p.title.toLowerCase().includes(kw) || (p.description || '').toLowerCase().includes(kw))
   }
   return [...posts].sort((a, b) => {
     const dateA = new Date(a.date).getTime()
@@ -106,3 +135,59 @@ const toggleSort = () => {
   catSort.value = catSort.value === 'desc' ? 'asc' : 'desc'
 }
 </script>
+
+<style scoped>
+@media (max-width: 768px) {
+  .category-detail-header {
+    gap: 10px;
+  }
+
+  .category-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .category-toolbar .category-search-bar {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .category-sort-btn {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .category-title-wrap .page-title {
+    font-size: 1.02rem;
+  }
+
+  .category-post-count {
+    font-size: 0.76rem;
+  }
+
+  .category-toolbar .category-search-bar input {
+    font-size: 0.82rem;
+  }
+
+  :deep(.post-meta) {
+    gap: 5px 8px;
+  }
+
+  :deep(.post-meta-tags) {
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .back-link {
+    font-size: 0.74rem;
+  }
+
+  .category-sort-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
